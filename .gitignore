@@ -1,0 +1,25 @@
+# Salesforce
+.sf/
+.sfdx/
+.localdevserver/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+
+# 機密情報
+.env
+*.key
+auth/
+
+# Zscaler 証明書（受講者が個別に配置するためコミットしない）
+.devcontainer/zscaler-root.cer
+authUrl.txt
+authFile.json

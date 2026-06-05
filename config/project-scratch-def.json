@@ -1,0 +1,13 @@
+{
+  "orgName": "Salesforce AI駆動開発研修",
+  "edition": "Enterprise",
+  "features": [],
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    },
+    "mobileSettings": {
+      "enableS1EncryptedStoragePref2": false
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "Salesforce AI開発環境",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "vscode",
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "mounts": [
+    "source=sfdx-config,target=/home/vscode/.sfdx,type=volume",
+    "source=sf-config,target=/home/vscode/.sf,type=volume",
+    "source=gh-config,target=/home/vscode/.config/gh,type=volume",
+    "source=claude-config,target=/home/vscode/.claude,type=volume"
+  ],
+  "forwardPorts": [
+    1717
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "salesforce.salesforcedx-vscode",
+        "redhat.vscode-xml",
+        "eamodio.gitlens",
+        "anthropic.claude-code"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "files.eol": "\n",
+        "editor.formatOnSave": true,
+        "salesforcedx-vscode-apex.java.home": "/usr/lib/jvm/java-17-openjdk-amd64"
+      }
+    }
+  },
+  "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.sf /home/vscode/.sfdx /home/vscode/.config/gh /home/vscode/.claude && git config --global --add safe.directory /workspace && echo 'コンテナの準備が完了しました。'",
+  "remoteEnv": {
+    "TZ": "Asia/Tokyo"
+  }
+}
