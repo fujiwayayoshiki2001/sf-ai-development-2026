@@ -1,3 +1,19 @@
 **/jsconfig.json
 **/.eslintrc.json
 **/.gitkeep
+
+# Lead オブジェクトの標準項目は管理しない（Score__c などのカスタム項目だけ管理）
+force-app/main/default/objects/Lead/fields/*.field-meta.xml
+!force-app/main/default/objects/Lead/fields/*__c.field-meta.xml
+
+# Lead オブジェクト本体は標準オブジェクトなので管理しない
+force-app/main/default/objects/Lead/Lead.object-meta.xml
+
+# Salesforce 標準の PermissionSetGroup は管理しない
+force-app/main/default/permissionsetgroups/force__*
+
+# Profile は基本管理しない（必要なら個別に管理）
+force-app/main/default/profiles/
+
+# 不要なメタデータ
+force-app/main/default/flexipages/standard-*
