@@ -1,0 +1,45 @@
+<template>
+    <lightning-card title="リード管理" icon-name="standard:lead">
+        <div class="slds-var-p-horizontal_medium">
+            <!-- フィルタ -->
+            <div class="slds-grid slds-gutters slds-grid_vertical-align-end slds-wrap">
+                <div class="slds-col slds-size_1-of-3">
+                    <lightning-combobox
+                        label="ステータスで絞り込み"
+                        value={statusFilter}
+                        options={statusOptions}
+                        onchange={handleStatusChange}>
+                    </lightning-combobox>
+                </div>
+                <div class="slds-col slds-size_1-of-3 slds-var-p-top_small">
+                    <lightning-input
+                        type="checkbox"
+                        label="高スコアのみ表示（30以上）"
+                        checked={highScoreOnly}
+                        onchange={handleHighScoreToggle}>
+                    </lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-3 slds-text-align_right">
+                    <lightning-button
+                        label="選択リードのスコア再計算"
+                        variant="brand"
+                        disabled={hasNoSelection}
+                        onclick={handleRecalculate}>
+                    </lightning-button>
+                </div>
+            </div>
+
+            <p class="slds-var-p-vertical_small slds-text-body_small">
+                表示件数: {recordCount} 件
+            </p>
+
+            <!-- リード一覧 -->
+            <lightning-datatable
+                key-field="Id"
+                data={leads}
+                columns={columns}
+                onrowselection={handleRowSelection}>
+            </lightning-datatable>
+        </div>
+    </lightning-card>
+</template>
