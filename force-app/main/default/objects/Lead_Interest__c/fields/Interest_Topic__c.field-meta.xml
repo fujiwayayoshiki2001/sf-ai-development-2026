@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Interest_Topic__c</fullName>
+    <label>関心トピック</label>
+    <required>true</required>
+    <type>Picklist</type>
+    <description>リードの関心領域トピック</description>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>データ統合</fullName>
+                <default>false</default>
+                <label>データ統合</label>
+            </value>
+            <value>
+                <fullName>業務効率化</fullName>
+                <default>false</default>
+                <label>業務効率化</label>
+            </value>
+            <value>
+                <fullName>セキュリティ強化</fullName>
+                <default>false</default>
+                <label>セキュリティ強化</label>
+            </value>
+            <value>
+                <fullName>コスト削減</fullName>
+                <default>false</default>
+                <label>コスト削減</label>
+            </value>
+            <value>
+                <fullName>DX 推進</fullName>
+                <default>false</default>
+                <label>DX 推進</label>
+            </value>
+            <value>
+                <fullName>既存システム置き換え</fullName>
+                <default>false</default>
+                <label>既存システム置き換え</label>
+            </value>
+            <value>
+                <fullName>クラウド移行</fullName>
+                <default>false</default>
+                <label>クラウド移行</label>
+            </value>
+            <value>
+                <fullName>自動化</fullName>
+                <default>false</default>
+                <label>自動化</label>
+            </value>
+            <value>
+                <fullName>AI 活用</fullName>
+                <default>false</default>
+                <label>AI 活用</label>
+            </value>
+            <value>
+                <fullName>ガバナンス強化</fullName>
+                <default>false</default>
+                <label>ガバナンス強化</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

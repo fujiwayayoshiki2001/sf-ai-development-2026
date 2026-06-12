@@ -823,19 +823,8 @@ sf project deploy start -l RunLocalTests -o my-scratch
 3. プルリクエストでマージ
 ```
 
----
 
-## 19. 連絡先
 
-```
-[研修運営]
-- 講師: 藤原 佳樹
-- 研修事務局: (社内連絡先)
-
-[技術的な質問]
-- 講師に直接質問
-- または #salesforce-training チャネル（社内）
-```
 
 ---
 

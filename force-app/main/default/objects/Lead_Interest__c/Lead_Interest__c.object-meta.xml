@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>リード興味</label>
+    <pluralLabel>リード興味</pluralLabel>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <enableReports>true</enableReports>
+    <enableActivities>false</enableActivities>
+    <enableHistory>true</enableHistory>
+    <enableSearch>true</enableSearch>
+    <sharingModel>ReadWrite</sharingModel>
+    <nameField>
+        <type>AutoNumber</type>
+        <displayFormat>INT-{0000}</displayFormat>
+        <label>興味番号</label>
+    </nameField>
+</CustomObject>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Score_Type__c</fullName>
+    <label>Score Type</label>
+    <length>50</length>
+    <required>false</required>
+    <type>Text</type>
+    <unique>false</unique>
+    <fieldManageability>DeveloperControlled</fieldManageability>
+    <description>Attribute / Behavior / Interest</description>
+</CustomField>

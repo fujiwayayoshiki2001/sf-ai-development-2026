@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Lead__c</fullName>
+    <label>リード</label>
+    <type>Lookup</type>
+    <referenceTo>Lead</referenceTo>
+    <relationshipName>Interests</relationshipName>
+    <relationshipLabel>興味領域</relationshipLabel>
+    <required>false</required>
+    <description>このリード興味が紐づくリード。Lead は主従関係のマスターになれず、必須Lookupも削除制約の制約上不可のため任意Lookup（削除時SetNull）で実装。必須性はアプリ層（バリデーション）で担保する想定。</description>
+</CustomField>
