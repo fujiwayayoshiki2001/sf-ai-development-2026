@@ -41,6 +41,42 @@ private class LeadServiceTest {
     }
 
     /**
+     * getAllLeads が全カテゴリをスコア降順で返すことを検証する。
+     */
+    @isTest
+    static void testGetAllLeads() {
+        List<Lead> leads = TestDataFactory.createLeads(3);
+        insert leads;
+        leads[0].Score__c = 120; leads[0].Lead_Category__c = LeadConstants.CATEGORY_WARM;
+        leads[1].Score__c = 200; leads[1].Lead_Category__c = LeadConstants.CATEGORY_HOT;
+        leads[2].Score__c = 30;  leads[2].Lead_Category__c = LeadConstants.CATEGORY_LOW;
+        setScoresBypassingTrigger(leads);
+
+        Test.startTest();
+        List<Lead> result = LeadService.getAllLeads(200);
+        Test.stopTest();
+
+        System.assertEquals(3, result.size(), '全カテゴリ3件が返るはず');
+        System.assertEquals(200, result[0].Score__c, '先頭は最高スコア200のはず');
+        System.assertEquals(120, result[1].Score__c, '2件目は120のはず');
+        System.assertEquals(30, result[2].Score__c, '3件目は30のはず');
+    }
+
+    /**
+     * getAllLeads が件数上限を尊重することを検証する。
+     */
+    @isTest
+    static void testGetAllLeadsLimit() {
+        insert TestDataFactory.createLeads(5);
+
+        Test.startTest();
+        List<Lead> limited = LeadService.getAllLeads(2);
+        Test.stopTest();
+
+        System.assertEquals(2, limited.size(), 'limit=2 で2件のはず');
+    }
+
+    /**
      * 取得件数の上限（limit）が効くことを検証する。
      */
     @isTest

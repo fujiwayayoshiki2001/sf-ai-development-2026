@@ -1,0 +1,73 @@
+<template>
+    <lightning-card title="リードスコア" icon-name="custom:custom63">
+        <div class="slds-var-p-horizontal_medium slds-var-p-bottom_medium">
+
+            <!-- ローディング -->
+            <template lwc:if={isLoading}>
+                <div class="slds-is-relative slds-var-p-vertical_large">
+                    <lightning-spinner
+                        alternative-text="スコアを読み込み中"
+                        size="small">
+                    </lightning-spinner>
+                </div>
+            </template>
+
+            <!-- エラー -->
+            <template lwc:elseif={error}>
+                <div class="slds-text-color_error slds-var-p-vertical_small" role="alert">
+                    <lightning-icon icon-name="utility:error" variant="error" size="x-small"
+                        class="slds-var-m-right_x-small"></lightning-icon>
+                    スコアの取得に失敗しました。
+                </div>
+            </template>
+
+            <!-- 本体 -->
+            <template lwc:else>
+                <!-- 最終スコア + カテゴリバッジ -->
+                <div class="slds-text-align_center slds-var-m-bottom_medium">
+                    <div class="slds-text-heading_large slds-text-color_default" aria-label="最終スコア">
+                        {totalScore}
+                    </div>
+                    <div class="slds-text-body_small slds-text-color_weak slds-var-m-bottom_x-small">
+                        / {totalMax} 点
+                    </div>
+                    <template lwc:if={hasCategory}>
+                        <span class={categoryClass} aria-label={categoryAriaLabel}>
+                            {category}
+                        </span>
+                    </template>
+                </div>
+
+                <!-- 属性スコア -->
+                <div class="slds-var-m-bottom_small">
+                    <div class="slds-grid slds-grid_align-spread slds-text-body_small">
+                        <span>属性スコア</span>
+                        <span class="slds-text-color_weak">{attributeScore} / {attributeMax}</span>
+                    </div>
+                    <lightning-progress-bar value={attributePercent} size="large"
+                        variant="circular"></lightning-progress-bar>
+                </div>
+
+                <!-- 行動スコア -->
+                <div class="slds-var-m-bottom_small">
+                    <div class="slds-grid slds-grid_align-spread slds-text-body_small">
+                        <span>行動スコア</span>
+                        <span class="slds-text-color_weak">{behaviorScore} / {behaviorMax}</span>
+                    </div>
+                    <lightning-progress-bar value={behaviorPercent} size="large"
+                        variant="circular"></lightning-progress-bar>
+                </div>
+
+                <!-- 興味スコア -->
+                <div class="slds-var-m-bottom_x-small">
+                    <div class="slds-grid slds-grid_align-spread slds-text-body_small">
+                        <span>興味スコア</span>
+                        <span class="slds-text-color_weak">{interestScore} / {interestMax}</span>
+                    </div>
+                    <lightning-progress-bar value={interestPercent} size="large"
+                        variant="circular"></lightning-progress-bar>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

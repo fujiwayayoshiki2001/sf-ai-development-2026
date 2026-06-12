@@ -6,5 +6,8 @@
     <uiType>Lightning</uiType>
     <formFactors>Large</formFactors>
     <tabs>standard-Lead</tabs>
+    <tabs>Lead_List</tabs>
+    <tabs>Lead_Search</tabs>
+    <tabs>Lead_Detail_Tab</tabs>
     <tabs>Lead_Interest__c</tabs>
 </CustomApplication>

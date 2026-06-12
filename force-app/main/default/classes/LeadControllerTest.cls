@@ -31,6 +31,28 @@ private class LeadControllerTest {
     }
 
     /**
+     * カテゴリ空（「All」）では全カテゴリのリードが返ることを検証する。
+     */
+    @isTest
+    static void testGetLeadListAll() {
+        List<Lead> leads = TestDataFactory.createLeads(3);
+        insert leads;
+        leads[0].Score__c = 200; leads[0].Lead_Category__c = LeadConstants.CATEGORY_HOT;
+        leads[1].Score__c = 60;  leads[1].Lead_Category__c = LeadConstants.CATEGORY_COLD;
+        leads[2].Score__c = 30;  leads[2].Lead_Category__c = LeadConstants.CATEGORY_LOW;
+        LeadTriggerHandler.bypassTrigger = true;
+        update leads;
+        LeadTriggerHandler.bypassTrigger = false;
+
+        Test.startTest();
+        List<Lead> result = LeadController.getLeadList('', 50); // 空文字 = All
+        Test.stopTest();
+
+        System.assertEquals(3, result.size(), 'All では全カテゴリ3件が返るはず');
+        System.assertEquals(200, result[0].Score__c, 'スコア降順で先頭は200のはず');
+    }
+
+    /**
      * 検索を検証する。
      */
     @isTest

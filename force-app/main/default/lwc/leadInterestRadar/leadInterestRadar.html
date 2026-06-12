@@ -1,0 +1,40 @@
+<template>
+    <lightning-card title="興味レーダー" icon-name="custom:custom18">
+        <div class="slds-var-p-horizontal_medium slds-var-p-bottom_medium">
+
+            <!-- ローディング -->
+            <template lwc:if={isLoading}>
+                <div class="slds-is-relative slds-var-p-vertical_large">
+                    <lightning-spinner alternative-text="読み込み中" size="small"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- エラー -->
+            <template lwc:elseif={error}>
+                <div class="slds-text-color_error slds-var-p-vertical_small" role="alert">
+                    <lightning-icon icon-name="utility:error" variant="error" size="x-small"
+                        class="slds-var-m-right_x-small"></lightning-icon>
+                    興味情報を表示できませんでした。
+                </div>
+            </template>
+
+            <!-- チャート -->
+            <template lwc:elseif={showChart}>
+                <div class="chart-container">
+                    <canvas class="radar" role="img" aria-label="リードの興味トピック別レーダーチャート"></canvas>
+                </div>
+            </template>
+
+            <!-- Empty State -->
+            <template lwc:elseif={showEmptyState}>
+                <div class="slds-illustration slds-illustration_small slds-var-p-around_medium slds-text-align_center">
+                    <lightning-icon icon-name="utility:chart" size="small"
+                        class="slds-var-m-bottom_x-small"></lightning-icon>
+                    <p class="slds-text-body_regular slds-text-color_weak">
+                        このリードには興味データがまだありません。
+                    </p>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

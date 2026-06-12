@@ -43,6 +43,25 @@ public with sharing class LeadService {
     }
 
     /**
+     * 全カテゴリのリードをスコア降順で取得する（カテゴリ未指定 = 「All」表示用）。
+     * @param limitSize 取得上限（null/0 以下は既定 50、200 を超える場合は 200）
+     * @return リードのリスト
+     */
+    public static List<Lead> getAllLeads(Integer limitSize) {
+        Integer effectiveLimit = normalizeLimit(limitSize);
+
+        return [
+            SELECT Id, Name, Company, Title, Industry,
+                   Score__c, Attribute_Score__c, Behavior_Score__c, Interest_Score__c,
+                   Lead_Category__c, Status
+            FROM Lead
+            WITH SECURITY_ENFORCED
+            ORDER BY Score__c DESC NULLS LAST
+            LIMIT :effectiveLimit
+        ];
+    }
+
+    /**
      * 名前または会社名で部分一致検索する（スコア降順）。
      * 入力は String.escapeSingleQuotes でエスケープし、バインド変数で安全に渡す。
      * @param searchTerm 検索文字列

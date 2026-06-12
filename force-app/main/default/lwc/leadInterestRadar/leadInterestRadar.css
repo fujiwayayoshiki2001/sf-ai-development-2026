@@ -1,0 +1,6 @@
+/* レーダーチャートの描画領域。Chart.js は親要素の高さを必要とするため最小限の高さを確保する。 */
+.chart-container {
+    position: relative;
+    height: 18rem;
+    width: 100%;
+}

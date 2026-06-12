@@ -1,0 +1,79 @@
+<template>
+    <lightning-card title="リード高度検索" icon-name="utility:search">
+        <div class="slds-var-p-horizontal_medium">
+            <!-- 検索条件 -->
+            <div class="slds-grid slds-gutters slds-wrap slds-grid_vertical-align-end">
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_5-of-12">
+                    <lightning-input
+                        type="search"
+                        label="キーワード（名前・会社名）"
+                        value={keyword}
+                        onchange={handleKeywordChange}
+                        onkeyup={handleKeyup}
+                        placeholder="例: 佐藤、日本株式会社"
+                        variant="label-stacked">
+                    </lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-12">
+                    <lightning-combobox
+                        label="カテゴリ"
+                        value={category}
+                        options={categoryOptions}
+                        onchange={handleCategoryChange}
+                        variant="label-stacked">
+                    </lightning-combobox>
+                </div>
+                <div class="slds-col slds-size_1-of-2 slds-medium-size_2-of-12">
+                    <lightning-input
+                        type="number"
+                        label="最小スコア"
+                        value={minScore}
+                        onchange={handleMinScoreChange}
+                        min="0"
+                        variant="label-stacked">
+                    </lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_2-of-12">
+                    <lightning-button
+                        label="検索"
+                        variant="brand"
+                        icon-name="utility:search"
+                        onclick={handleSearch}
+                        class="slds-var-m-top_x-small">
+                    </lightning-button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 結果 -->
+        <div class="slds-is-relative slds-var-p-horizontal_medium slds-var-p-vertical_medium">
+            <template lwc:if={isLoading}>
+                <lightning-spinner alternative-text="検索中" size="small"></lightning-spinner>
+            </template>
+
+            <template lwc:if={hasResults}>
+                <p class="slds-text-body_small slds-text-color_weak slds-var-m-bottom_x-small">
+                    {resultCount} 件ヒット
+                </p>
+                <lightning-datatable
+                    key-field="Id"
+                    data={results}
+                    columns={columns}
+                    hide-checkbox-column
+                    onrowaction={handleRowAction}>
+                </lightning-datatable>
+            </template>
+
+            <!-- Empty State（検索済み・結果なし） -->
+            <template lwc:if={noResults}>
+                <div class="slds-illustration slds-illustration_small slds-var-p-around_medium slds-text-align_center">
+                    <lightning-icon icon-name="utility:search" size="small"
+                        class="slds-var-m-bottom_x-small"></lightning-icon>
+                    <p class="slds-text-body_regular slds-text-color_weak">
+                        条件に一致するリードが見つかりませんでした。
+                    </p>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

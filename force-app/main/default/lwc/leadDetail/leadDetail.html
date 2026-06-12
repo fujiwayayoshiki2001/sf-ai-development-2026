@@ -1,0 +1,27 @@
+<template>
+    <lightning-card title="リード詳細" icon-name="standard:lead">
+        <div class="slds-var-p-horizontal_medium slds-var-p-bottom_medium">
+            <template lwc:if={hasRecord}>
+                <lightning-record-form
+                    record-id={recordId}
+                    object-api-name={objectApiName}
+                    fields={fields}
+                    columns="2"
+                    mode="view"
+                    onsuccess={handleSuccess}
+                    onerror={handleError}>
+                </lightning-record-form>
+            </template>
+
+            <template lwc:else>
+                <div class="slds-illustration slds-illustration_small slds-var-p-around_medium slds-text-align_center">
+                    <lightning-icon icon-name="utility:info" size="small"
+                        class="slds-var-m-bottom_x-small"></lightning-icon>
+                    <p class="slds-text-body_regular slds-text-color_weak">
+                        リードレコードページ上で表示してください。
+                    </p>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

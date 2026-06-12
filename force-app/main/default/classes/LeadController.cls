@@ -17,14 +17,17 @@
 public with sharing class LeadController {
 
     /**
-     * カテゴリ別のリード一覧を取得する。
-     * @param category  カテゴリ（Hot/Warm/Cold/Low）
+     * リード一覧を取得する。カテゴリが空（「All」）の場合は全カテゴリをスコア降順で返す。
+     * @param category  カテゴリ（Hot/Warm/Cold/Low）。空文字/null は全件（All）。
      * @param limitSize 取得上限
      * @return 該当リードのリスト
      */
     @AuraEnabled(cacheable=true)
     public static List<Lead> getLeadList(String category, Integer limitSize) {
         try {
+            if (String.isBlank(category)) {
+                return LeadService.getAllLeads(limitSize);
+            }
             return LeadService.getLeadsByCategory(category, limitSize);
         } catch (Exception e) {
             System.debug(LoggingLevel.ERROR, 'getLeadList Error: ' + e.getMessage());
