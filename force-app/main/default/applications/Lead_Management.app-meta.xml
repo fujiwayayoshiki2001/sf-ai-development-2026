@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <label>Lead Management</label>
+    <description>リード管理・スコアリングシステム用のカスタムアプリ。リードと興味（Lead_Interest__c）のタブを含む。</description>
+    <navType>Standard</navType>
+    <uiType>Lightning</uiType>
+    <formFactors>Large</formFactors>
+    <tabs>standard-Lead</tabs>
+    <tabs>Lead_Interest__c</tabs>
+</CustomApplication>
