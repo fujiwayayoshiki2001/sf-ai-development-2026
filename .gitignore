@@ -23,3 +23,6 @@ auth/
 .devcontainer/zscaler-root.cer
 authUrl.txt
 authFile.json
+
+# Test coverage reports
+coverage/
