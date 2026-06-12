@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>63.0</apiVersion>
+    <description>毎日02:00に実行し、最終アクション日が30日以上前で未Staleのリードを Stale に更新するスケジュールフロー。バルク処理（ループなし）・Fault Path 付き。</description>
+    <environments>Default</environments>
+    <interviewLabel>Lead Status Update Flow {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>Lead Status Update Flow</label>
+    <processType>AutoLaunchedFlow</processType>
+    <status>Active</status>
+
+    <!-- 陳腐化判定の閾値日数（ハードコードを避け変数化。Apex の LeadConstants.STALE_DAYS=30 と対応） -->
+    <variables>
+        <name>varStaleDays</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>false</isOutput>
+        <scale>0</scale>
+        <value>
+            <numberValue>30.0</numberValue>
+        </value>
+    </variables>
+
+    <!-- 本日から varStaleDays 日前の基準日 -->
+    <formulas>
+        <name>formulaStaleThreshold</name>
+        <dataType>Date</dataType>
+        <expression>TODAY() - {!varStaleDays}</expression>
+    </formulas>
+
+    <start>
+        <locationX>176</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Get_Stale_Leads</targetReference>
+        </connector>
+        <schedule>
+            <frequency>Daily</frequency>
+            <startDate>2026-06-13</startDate>
+            <startTime>02:00:00.000Z</startTime>
+        </schedule>
+        <triggerType>Scheduled</triggerType>
+    </start>
+
+    <!-- 陳腐化候補を取得（基準日より前 かつ 未Stale） -->
+    <recordLookups>
+        <name>Get_Stale_Leads</name>
+        <label>Get Stale Leads</label>
+        <locationX>176</locationX>
+        <locationY>132</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Found_Stale_Leads</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Send_Error_Notification</targetReference>
+        </faultConnector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Last_Action_Date__c</field>
+            <operator>LessThan</operator>
+            <value>
+                <elementReference>formulaStaleThreshold</elementReference>
+            </value>
+        </filters>
+        <filters>
+            <field>Status</field>
+            <operator>NotEqualTo</operator>
+            <value>
+                <stringValue>Stale</stringValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>false</getFirstRecordOnly>
+        <object>Lead</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+
+    <!-- 候補が1件以上ある場合のみ更新へ進む -->
+    <decisions>
+        <name>Found_Stale_Leads</name>
+        <label>Found Stale Leads</label>
+        <locationX>176</locationX>
+        <locationY>252</locationY>
+        <defaultConnectorLabel>陳腐化リードなし</defaultConnectorLabel>
+        <rules>
+            <name>Has_Stale_Leads</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Stale_Leads</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Update_to_Stale_Status</targetReference>
+            </connector>
+            <label>陳腐化リードあり</label>
+        </rules>
+    </decisions>
+
+    <!-- 条件に一致するリードの Status を一括で Stale に更新（バルク・ループなし） -->
+    <recordUpdates>
+        <name>Update_to_Stale_Status</name>
+        <label>Update to Stale Status</label>
+        <locationX>176</locationX>
+        <locationY>372</locationY>
+        <faultConnector>
+            <targetReference>Send_Error_Notification</targetReference>
+        </faultConnector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Last_Action_Date__c</field>
+            <operator>LessThan</operator>
+            <value>
+                <elementReference>formulaStaleThreshold</elementReference>
+            </value>
+        </filters>
+        <filters>
+            <field>Status</field>
+            <operator>NotEqualTo</operator>
+            <value>
+                <stringValue>Stale</stringValue>
+            </value>
+        </filters>
+        <inputAssignments>
+            <field>Status</field>
+            <value>
+                <stringValue>Stale</stringValue>
+            </value>
+        </inputAssignments>
+        <object>Lead</object>
+    </recordUpdates>
+
+    <!-- Fault Path: 実行ユーザーへエラー通知メール -->
+    <actionCalls>
+        <name>Send_Error_Notification</name>
+        <label>Send Error Notification</label>
+        <locationX>440</locationX>
+        <locationY>132</locationY>
+        <actionName>emailSimple</actionName>
+        <actionType>emailSimple</actionType>
+        <inputParameters>
+            <name>emailAddresses</name>
+            <value>
+                <elementReference>$User.Email</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>emailSubject</name>
+            <value>
+                <stringValue>Lead Status Update Flow でエラーが発生しました</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>emailBody</name>
+            <value>
+                <elementReference>$Flow.FaultMessage</elementReference>
+            </value>
+        </inputParameters>
+    </actionCalls>
+</Flow>

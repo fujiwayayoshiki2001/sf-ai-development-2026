@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StandardValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <sorted>false</sorted>
+    <standardValue>
+        <fullName>Contacted</fullName>
+        <default>false</default>
+        <label>評価中</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Open</fullName>
+        <default>true</default>
+        <label>新規</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Qualified</fullName>
+        <default>false</default>
+        <label>評価済み</label>
+        <converted>true</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Unqualified</fullName>
+        <default>false</default>
+        <label>不要</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Stale</fullName>
+        <default>false</default>
+        <label>陳腐化</label>
+        <converted>false</converted>
+    </standardValue>
+</StandardValueSet>
