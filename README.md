@@ -140,17 +140,27 @@ bash scripts/deploy.sh lead-scoring-base
 > 素の `sf project deploy start --target-org lead-scoring-base` を使った場合は、デプロイ後に
 > もう一度 `bash scripts/deploy.sh lead-scoring-base` を実行すれば割当だけが適用されます（冪等）。
 
-### 5. シードデータの投入
-
-```bash
-bash data/load-data.sh
-```
-
-### 6. 権限セットの割り当て
+### 5. 権限セットの割り当て（シードより**前**に実行）
 
 ```bash
 sf org assign permset --name Lead_Management_User --target-org lead-scoring-base
 ```
+
+> **順序が重要（重要）**
+> この権限セットは、スコア系・興味系のカスタム項目に対する **FLS（項目レベルセキュリティ）** を付与します。
+> 割り当てる前に Lead を作成したり次のシード投入を行うと、スコア計算トリガーの
+> `WITH SECURITY_ENFORCED` クエリや `seed.apex` のコンパイルが
+> **「Insufficient permissions / No such column 'Source__c'」** で失敗します。
+> 必ず **デプロイ → 権限セット → シード** の順で実行してください。
+
+### 6. シードデータの投入
+
+```bash
+bash data/load-data.sh lead-scoring-base
+```
+
+> `load-data.sh` は冗長安全のため、投入前に権限セット（手順 5）を自動で割り当てます
+> （割当済みならスキップ）。手順 5 を実行済みでも問題ありません。
 
 ### 7. 組織を開く
 
@@ -323,6 +333,25 @@ sf org list
 
 # Dev Hub を再認証
 sf org login web --alias dev-hub --set-default-dev-hub
+```
+
+### Lead を作成すると「Insufficient permissions / inaccessible field」エラーになる
+
+```
+System.QueryException: Insufficient permissions: secure query included inaccessible field
+Class.LeadInterestScorer.calculateBulk: line XX
+...
+Trigger.LeadTrigger: line 19
+```
+
+または `seed.apex` 実行時に `No such column 'Source__c' on entity 'Lead_Interest__c'`。
+
+**原因**: 権限セット `Lead_Management_User`（スコア系・興味系項目の FLS を付与）が未割当。
+スコア計算トリガーの `WITH SECURITY_ENFORCED` クエリが項目を参照できず失敗します。
+
+```bash
+# 対処: 権限セットを割り当てる（セットアップ手順 5）
+sf org assign permset --name Lead_Management_User --target-org <org-alias>
 ```
 
 ### デプロイエラーが発生する
