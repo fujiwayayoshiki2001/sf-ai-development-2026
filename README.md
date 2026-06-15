@@ -125,8 +125,20 @@ sf org create scratch \
 ### 4. メタデータのデプロイ
 
 ```bash
-sf project deploy start --target-org lead-scoring-base
+bash scripts/deploy.sh lead-scoring-base
 ```
+
+> **なぜスクリプト経由か（重要）**
+> `sf project deploy start` を 1 回実行するだけでは、Lead の **強調表示パネル（Highlights Panel）**
+> が既定項目のままになります。コンパクトレイアウト（`Lead_Compact_Layout`）と、それを primary に
+> 指定する `<compactLayoutAssignment>` を同一デプロイで送ると、割当評価時にレイアウトが未コミットで
+> SYSTEM(既定) にフォールバックするためです。
+>
+> `scripts/deploy.sh` は **2 パス方式**（① 全体デプロイ → ② 割当のみ別トランザクションで再デプロイ）で
+> この問題を吸収し、**手動操作なし**でカスタム コンパクトレイアウトを適用します。
+>
+> 素の `sf project deploy start --target-org lead-scoring-base` を使った場合は、デプロイ後に
+> もう一度 `bash scripts/deploy.sh lead-scoring-base` を実行すれば割当だけが適用されます（冪等）。
 
 ### 5. シードデータの投入
 
