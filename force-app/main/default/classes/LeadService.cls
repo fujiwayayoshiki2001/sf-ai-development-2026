@@ -18,6 +18,9 @@ public with sharing class LeadService {
     private static final Integer DEFAULT_LIMIT = 50;
     private static final Integer MAX_LIMIT = 200;
 
+    // 1リードあたりの興味レコード取得上限
+    private static final Integer INTEREST_LIMIT = 100;
+
     /**
      * 指定カテゴリのリードをスコア降順で取得する。
      * @param category  Lead_Category__c の値（Hot/Warm/Cold/Low）
@@ -85,6 +88,59 @@ public with sharing class LeadService {
             WITH SECURITY_ENFORCED
             ORDER BY Score__c DESC
             LIMIT :effectiveLimit
+        ];
+    }
+
+    /**
+     * 指定リードの 3 軸スコアの内訳を返す。
+     * @param leadId 対象 Lead Id
+     * @return { attribute, behavior, interest, total } の Map
+     * @throws IllegalArgumentException leadId が null の場合
+     * @throws QueryException           指定リードが存在しない場合
+     */
+    public static Map<String, Decimal> getScoreBreakdown(Id leadId) {
+        if (leadId == null) {
+            throw new IllegalArgumentException('リード ID が指定されていません');
+        }
+
+        List<Lead> leads = [
+            SELECT Id, Score__c, Attribute_Score__c, Behavior_Score__c, Interest_Score__c
+            FROM Lead
+            WHERE Id = :leadId
+            WITH SECURITY_ENFORCED
+            LIMIT 1
+        ];
+        if (leads.isEmpty()) {
+            throw new QueryException('指定されたリードが見つかりません: ' + leadId);
+        }
+
+        Lead lead = leads[0];
+        return new Map<String, Decimal>{
+            'attribute' => lead.Attribute_Score__c,
+            'behavior'  => lead.Behavior_Score__c,
+            'interest'  => lead.Interest_Score__c,
+            'total'     => lead.Score__c
+        };
+    }
+
+    /**
+     * 指定リードに紐づく興味レコードを関心度（Interest_Level__c）の降順で取得する。
+     * @param leadId 対象 Lead Id
+     * @return Lead_Interest__c のリスト（最大 INTEREST_LIMIT 件）
+     * @throws IllegalArgumentException leadId が null の場合
+     */
+    public static List<Lead_Interest__c> getInterests(Id leadId) {
+        if (leadId == null) {
+            throw new IllegalArgumentException('リード ID が指定されていません');
+        }
+
+        return [
+            SELECT Id, Interest_Topic__c, Interest_Level__c, Detected_Date__c, Source__c, Notes__c
+            FROM Lead_Interest__c
+            WHERE Lead__c = :leadId
+            WITH SECURITY_ENFORCED
+            ORDER BY Interest_Level__c DESC
+            LIMIT :INTEREST_LIMIT
         ];
     }
 

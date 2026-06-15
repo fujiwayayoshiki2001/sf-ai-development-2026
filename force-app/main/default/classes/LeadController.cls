@@ -58,30 +58,7 @@ public with sharing class LeadController {
     @AuraEnabled(cacheable=true)
     public static Map<String, Decimal> getScoreBreakdown(Id leadId) {
         try {
-            if (leadId == null) {
-                throw new AuraHandledException('リード ID が指定されていません');
-            }
-
-            List<Lead> leads = [
-                SELECT Id, Score__c, Attribute_Score__c, Behavior_Score__c, Interest_Score__c
-                FROM Lead
-                WHERE Id = :leadId
-                WITH SECURITY_ENFORCED
-                LIMIT 1
-            ];
-            if (leads.isEmpty()) {
-                throw new AuraHandledException('指定されたリードが見つかりません');
-            }
-            Lead lead = leads[0];
-
-            return new Map<String, Decimal>{
-                'attribute' => lead.Attribute_Score__c,
-                'behavior'  => lead.Behavior_Score__c,
-                'interest'  => lead.Interest_Score__c,
-                'total'     => lead.Score__c
-            };
-        } catch (AuraHandledException e) {
-            throw e;
+            return LeadService.getScoreBreakdown(leadId);
         } catch (Exception e) {
             System.debug(LoggingLevel.ERROR, 'getScoreBreakdown Error: ' + e.getMessage());
             throw new AuraHandledException('スコアの取得に失敗しました');
@@ -96,19 +73,7 @@ public with sharing class LeadController {
     @AuraEnabled(cacheable=true)
     public static List<Lead_Interest__c> getInterests(Id leadId) {
         try {
-            if (leadId == null) {
-                throw new AuraHandledException('リード ID が指定されていません');
-            }
-
-            return [
-                SELECT Id, Interest_Topic__c, Interest_Level__c, Detected_Date__c, Source__c, Notes__c
-                FROM Lead_Interest__c
-                WHERE Lead__c = :leadId
-                WITH SECURITY_ENFORCED
-                ORDER BY Interest_Level__c DESC
-            ];
-        } catch (AuraHandledException e) {
-            throw e;
+            return LeadService.getInterests(leadId);
         } catch (Exception e) {
             System.debug(LoggingLevel.ERROR, 'getInterests Error: ' + e.getMessage());
             throw new AuraHandledException('興味情報の取得に失敗しました');

@@ -123,6 +123,145 @@ private class LeadServiceTest {
         System.assertEquals(0, blank.size(), '空文字検索は空リストのはず');
     }
 
+    // ===== getScoreBreakdown =====
+
+    /**
+     * スコア内訳が { attribute, behavior, interest, total } で返ることを検証する。
+     * TestDataFactory の既定リードは属性70・他0・合計70。
+     */
+    @isTest
+    static void testGetScoreBreakdown_Success() {
+        List<Lead> leads = TestDataFactory.createLeads(1);
+        insert leads;
+
+        Test.startTest();
+        Map<String, Decimal> breakdown = LeadService.getScoreBreakdown(leads[0].Id);
+        Test.stopTest();
+
+        System.assertEquals(70, breakdown.get('attribute'), '属性スコアは70のはず');
+        System.assertEquals(0, breakdown.get('behavior'), '行動スコアは0のはず');
+        System.assertEquals(0, breakdown.get('interest'), '興味スコアは0のはず');
+        System.assertEquals(70, breakdown.get('total'), '合計は70のはず');
+    }
+
+    /**
+     * null Id では IllegalArgumentException（標準例外）が投げられることを検証する。
+     */
+    @isTest
+    static void testGetScoreBreakdown_NullId() {
+        Boolean threw = false;
+        Test.startTest();
+        try {
+            LeadService.getScoreBreakdown(null);
+        } catch (IllegalArgumentException e) {
+            threw = true;
+        }
+        Test.stopTest();
+        System.assert(threw, 'null Id では IllegalArgumentException が投げられるはず');
+    }
+
+    /**
+     * 存在しない Id では QueryException（標準例外）が投げられることを検証する。
+     */
+    @isTest
+    static void testGetScoreBreakdown_NotFound() {
+        List<Lead> leads = TestDataFactory.createLeads(1);
+        insert leads;
+        Id leadId = leads[0].Id;
+        delete [SELECT Id FROM Lead WHERE Id = :leadId];
+
+        Boolean threw = false;
+        Test.startTest();
+        try {
+            LeadService.getScoreBreakdown(leadId);
+        } catch (QueryException e) {
+            threw = true;
+        }
+        Test.stopTest();
+        System.assert(threw, '存在しない Id では QueryException が投げられるはず');
+    }
+
+    // ===== getInterests =====
+
+    /**
+     * 興味レコードが関心度（Interest_Level__c）の降順で返ることを検証する。
+     */
+    @isTest
+    static void testGetInterests_Success() {
+        List<Lead> leads = TestDataFactory.createLeads(1);
+        insert leads;
+        insert new List<Lead_Interest__c>{
+            new Lead_Interest__c(Lead__c = leads[0].Id, Interest_Topic__c = 'AI 活用',
+                Interest_Level__c = 30, Detected_Date__c = Date.today(), Source__c = 'T'),
+            new Lead_Interest__c(Lead__c = leads[0].Id, Interest_Topic__c = '業務効率化',
+                Interest_Level__c = 80, Detected_Date__c = Date.today(), Source__c = 'T')
+        };
+
+        Test.startTest();
+        List<Lead_Interest__c> result = LeadService.getInterests(leads[0].Id);
+        Test.stopTest();
+
+        System.assertEquals(2, result.size(), '興味は2件返るはず');
+        System.assertEquals(80, result[0].Interest_Level__c, 'レベル降順で先頭は80のはず');
+        System.assertEquals(30, result[1].Interest_Level__c, '2件目は30のはず');
+    }
+
+    /**
+     * null Id では IllegalArgumentException（標準例外）が投げられることを検証する。
+     */
+    @isTest
+    static void testGetInterests_NullId() {
+        Boolean threw = false;
+        Test.startTest();
+        try {
+            LeadService.getInterests(null);
+        } catch (IllegalArgumentException e) {
+            threw = true;
+        }
+        Test.stopTest();
+        System.assert(threw, 'null Id では IllegalArgumentException が投げられるはず');
+    }
+
+    /**
+     * 興味レコードが無いリードでは空リストが返ることを検証する。
+     */
+    @isTest
+    static void testGetInterests_EmptyResult() {
+        List<Lead> leads = TestDataFactory.createLeads(1);
+        insert leads;
+
+        Test.startTest();
+        List<Lead_Interest__c> result = LeadService.getInterests(leads[0].Id);
+        Test.stopTest();
+
+        System.assertEquals(0, result.size(), '興味が無いリードは空リストのはず');
+    }
+
+    /**
+     * 興味レコードが上限（INTEREST_LIMIT=100）を超えても 100 件で打ち止めになることを検証する。
+     */
+    @isTest
+    static void testGetInterests_BulkCount() {
+        List<Lead> leads = TestDataFactory.createLeads(1);
+        insert leads;
+        List<Lead_Interest__c> interests = new List<Lead_Interest__c>();
+        for (Integer i = 0; i < 120; i++) {
+            interests.add(new Lead_Interest__c(
+                Lead__c = leads[0].Id, Interest_Topic__c = 'AI 活用',
+                Interest_Level__c = i + 1, Detected_Date__c = Date.today(), Source__c = 'T'
+            ));
+        }
+        insert interests;
+
+        Test.startTest();
+        List<Lead_Interest__c> result = LeadService.getInterests(leads[0].Id);
+        Test.stopTest();
+
+        System.assertEquals(100, result.size(), '120件あっても上限100件で打ち止めのはず');
+        System.assertEquals(120, result[0].Interest_Level__c,
+            '降順のため先頭は最大レベル120のはず');
+    }
+
     /**
      * 最終アクション日が本日に更新されることを検証する。
      */
