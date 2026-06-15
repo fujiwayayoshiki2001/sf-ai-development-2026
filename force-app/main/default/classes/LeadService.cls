@@ -147,14 +147,22 @@ public with sharing class LeadService {
     /**
      * 指定リードの最終アクション日を本日に更新する。
      * 更新権限（CRUD）を確認してから DML を実行する。
+     *
+     * サービス層は UI を意識しないため、UI 向けの AuraHandledException ではなく
+     * 標準例外を投げる:
+     *   - 更新権限が無い場合 : SecurityException
+     *   - DML 失敗           : DmlException（そのまま伝播）
+     * UI 向けのラップは呼び出し側（LeadController）の責務とする。
      * @param leadIds 対象 Lead Id の集合
+     * @throws SecurityException 実行ユーザーに Lead の更新権限が無い場合
+     * @throws DmlException      更新 DML が失敗した場合
      */
     public static void updateLastActionDate(Set<Id> leadIds) {
         if (leadIds == null || leadIds.isEmpty()) {
             return;
         }
         if (!Schema.sObjectType.Lead.isUpdateable()) {
-            throw new AuraHandledException('リードの更新権限がありません');
+            throw new SecurityException('Lead is not updateable for the current user');
         }
 
         List<Lead> leadsToUpdate = new List<Lead>();

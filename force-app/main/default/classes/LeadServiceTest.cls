@@ -297,6 +297,55 @@ private class LeadServiceTest {
     }
 
     /**
+     * 更新権限の無いユーザーでは SecurityException（標準例外）が投げられることを検証する。
+     * サービス層は UI 向けの AuraHandledException ではなく標準例外を投げる。
+     */
+    @isTest
+    static void testUpdateLastActionDateThrowsSecurityWithoutAccess() {
+        List<Lead> leads = TestDataFactory.createLeads(1);
+        insert leads;
+        Set<Id> ids = new Map<Id, Lead>(leads).keySet();
+
+        // User（setup オブジェクト）の DML は MIXED_DML 回避のため runAs 内で行う
+        User minUser = buildMinimumAccessUser();
+        System.runAs(new User(Id = UserInfo.getUserId())) {
+            insert minUser;
+        }
+
+        Boolean threw = false;
+        System.runAs(minUser) {
+            Test.startTest();
+            try {
+                LeadService.updateLastActionDate(ids);
+            } catch (SecurityException e) {
+                threw = true;
+            }
+            Test.stopTest();
+        }
+        System.assert(threw,
+            '更新権限の無いユーザーでは SecurityException が投げられるはず');
+    }
+
+    /**
+     * 最小アクセス権限のユーザーを生成する（未 insert）。
+     */
+    private static User buildMinimumAccessUser() {
+        Profile p = [SELECT Id FROM Profile WHERE Name = 'Minimum Access - Salesforce' LIMIT 1];
+        String unique = 'minsvc' + System.now().getTime();
+        return new User(
+            Alias = 'minsvc',
+            Email = unique + '@example.com.invalid',
+            LastName = 'MinAccess',
+            Username = unique + '@example.com.invalid',
+            ProfileId = p.Id,
+            TimeZoneSidKey = 'America/Los_Angeles',
+            LocaleSidKey = 'en_US',
+            EmailEncodingKey = 'UTF-8',
+            LanguageLocaleKey = 'en_US'
+        );
+    }
+
+    /**
      * 陳腐化リード（最終アクション日が STALE_DAYS 日以上前）が取得されることを検証する。
      */
     @isTest
