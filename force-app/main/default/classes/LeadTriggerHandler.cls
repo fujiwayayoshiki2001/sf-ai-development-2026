@@ -69,7 +69,10 @@ public with sharing class LeadTriggerHandler {
 
         Set<Id> leadsToRecalc = new Set<Id>();
         for (Lead newLead : newLeads) {
-            Lead oldLead = (oldMap != null) ? oldMap.get(newLead.Id) : null;
+            Lead oldLead = null;
+            if (oldMap != null) {
+                oldLead = oldMap.get(newLead.Id);
+            }
             if (oldLead == null || isAttributeChanged(oldLead, newLead)) {
                 leadsToRecalc.add(newLead.Id);
             }

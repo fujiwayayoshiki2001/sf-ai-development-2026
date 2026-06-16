@@ -73,7 +73,10 @@ public with sharing class LeadController {
     @AuraEnabled
     public static void updateLastActionDate(List<Id> leadIds) {
         try {
-            Set<Id> idSet = (leadIds == null) ? null : new Set<Id>(leadIds);
+            Set<Id> idSet = null;
+            if (leadIds != null) {
+                idSet = new Set<Id>(leadIds);
+            }
             LeadService.updateLastActionDate(idSet);
         } catch (SecurityException e) {
             System.debug(LoggingLevel.ERROR, 'updateLastActionDate Security Error: ' + e.getMessage());

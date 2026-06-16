@@ -67,7 +67,10 @@ public class LeadAttributeScorer {
             return 0;
         }
         Map<Id, Decimal> scoreMap = calculateBulk(new List<Lead>{ lead });
-        return scoreMap.containsKey(lead.Id) ? scoreMap.get(lead.Id) : 0;
+        if (scoreMap.containsKey(lead.Id)) {
+            return scoreMap.get(lead.Id);
+        }
+        return 0;
     }
 
     /**
@@ -140,7 +143,10 @@ public class LeadAttributeScorer {
      */
     private static Decimal lookup(Map<String, Decimal> weightMap, String key) {
         String normalizedKey = key.trim().toLowerCase();
-        return weightMap.containsKey(normalizedKey) ? weightMap.get(normalizedKey) : 0;
+        if (weightMap.containsKey(normalizedKey)) {
+            return weightMap.get(normalizedKey);
+        }
+        return 0;
     }
 
     /**

@@ -48,7 +48,10 @@ public with sharing class LeadBehaviorScorer {
                 continue;
             }
             String key = (member.Campaign.Type + '_' + member.Status).toLowerCase();
-            Decimal weight = weightMap.containsKey(key) ? weightMap.get(key) : 0;
+            Decimal weight = 0;
+            if (weightMap.containsKey(key)) {
+                weight = weightMap.get(key);
+            }
             if (weight == 0) {
                 continue;
             }
@@ -75,7 +78,10 @@ public with sharing class LeadBehaviorScorer {
             return 0;
         }
         Map<Id, Decimal> scoreMap = calculateBulk(new Set<Id>{ leadId });
-        return scoreMap.containsKey(leadId) ? scoreMap.get(leadId) : 0;
+        if (scoreMap.containsKey(leadId)) {
+            return scoreMap.get(leadId);
+        }
+        return 0;
     }
 
     /**

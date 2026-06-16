@@ -43,9 +43,18 @@ public with sharing class LeadScoringService {
         // 反映用の Lead リストを構築
         List<Lead> leadsToUpdate = new List<Lead>();
         for (Id leadId : leadMap.keySet()) {
-            Decimal attributeScore = attributeScores.containsKey(leadId) ? attributeScores.get(leadId) : 0;
-            Decimal behaviorScore  = behaviorScores.containsKey(leadId)  ? behaviorScores.get(leadId)  : 0;
-            Decimal interestScore  = interestScores.containsKey(leadId)  ? interestScores.get(leadId)  : 0;
+            Decimal attributeScore = 0;
+            if (attributeScores.containsKey(leadId)) {
+                attributeScore = attributeScores.get(leadId);
+            }
+            Decimal behaviorScore = 0;
+            if (behaviorScores.containsKey(leadId)) {
+                behaviorScore = behaviorScores.get(leadId);
+            }
+            Decimal interestScore = 0;
+            if (interestScores.containsKey(leadId)) {
+                interestScore = interestScores.get(leadId);
+            }
             Decimal totalScore = attributeScore + behaviorScore + interestScore;
 
             leadsToUpdate.add(new Lead(

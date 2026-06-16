@@ -53,7 +53,10 @@ public with sharing class LeadInterestScorer {
                 continue;
             }
             String key = interest.Interest_Topic__c.trim().toLowerCase();
-            Decimal weight = weightMap.containsKey(key) ? weightMap.get(key) : 0;
+            Decimal weight = 0;
+            if (weightMap.containsKey(key)) {
+                weight = weightMap.get(key);
+            }
             if (weight == 0) {
                 continue;
             }
@@ -79,7 +82,10 @@ public with sharing class LeadInterestScorer {
             return 0;
         }
         Map<Id, Decimal> scoreMap = calculateBulk(new Set<Id>{ leadId });
-        return scoreMap.containsKey(leadId) ? scoreMap.get(leadId) : 0;
+        if (scoreMap.containsKey(leadId)) {
+            return scoreMap.get(leadId);
+        }
+        return 0;
     }
 
     /**
