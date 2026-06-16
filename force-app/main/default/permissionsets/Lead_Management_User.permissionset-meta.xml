@@ -133,15 +133,7 @@
         <visibility>Visible</visibility>
     </tabSettings>
     <tabSettings>
-        <tab>Lead_List</tab>
-        <visibility>Visible</visibility>
-    </tabSettings>
-    <tabSettings>
-        <tab>Lead_Search</tab>
-        <visibility>Visible</visibility>
-    </tabSettings>
-    <tabSettings>
-        <tab>Lead_Detail_Tab</tab>
+        <tab>standard-Campaign</tab>
         <visibility>Visible</visibility>
     </tabSettings>
 

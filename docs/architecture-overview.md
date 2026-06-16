@@ -40,8 +40,8 @@
 ```
  ┌─────────────────────────────────────────────────────────────┐
  │  プレゼンテーション層（画面）                                   │
- │   LWC:  leadList / leadSearch / leadScoreCard /              │
- │         leadInterestRadar / leadDetail                       │
+ │   LWC:  leadScoreCard / leadInterestRadar                    │
+ │   （一覧・検索・詳細は標準UI／レコードページに集約）             │
  └───────────────┬─────────────────────────────────────────────┘
                  │ @AuraEnabled 呼び出し（JSの fetch のようなもの）
                  ▼
@@ -159,7 +159,7 @@
 
 | クラス | 1 行説明 |
 |---|---|
-| `LeadController` | LWC 窓口。一覧/検索/スコア内訳/興味一覧/再計算を公開し、処理は下層へ委譲・例外を整形。 |
+| `LeadController` | LWC 窓口。スコア内訳/興味一覧/再計算/最終アクション日更新を公開し、処理は下層へ委譲・例外を整形。 |
 
 > `@AuraEnabled(cacheable=true)` = 読み取り専用でブラウザキャッシュ可（高速）。
 > 状態を変えるメソッド（`recalculateScore`）は `cacheable=false`。
@@ -223,7 +223,7 @@
 向き、逆流（下位が上位を呼ぶ）はありません。これが保守しやすさの肝です。
 
 ```
-LWC (leadList 等)
+LWC (leadInterestRadar 等)
    │
    ▼
 LeadController

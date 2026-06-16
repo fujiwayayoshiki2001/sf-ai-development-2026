@@ -580,24 +580,14 @@ validate(リスト) → 各Leadに対して 必須項目チェック + メール
 
 ### 主要なメソッドの解説
 
-#### `getLeadList(String category, Integer limitSize) → List<Lead>`
-- カテゴリ空なら全件、指定ありならカテゴリ別。委譲先を選ぶだけ。
-  ```apex
-  @AuraEnabled(cacheable=true)
-  public static List<Lead> getLeadList(String category, Integer limitSize) {
-      try {
-          return String.isBlank(category)
-              ? LeadService.getAllLeads(limitSize)
-              : LeadService.getLeadsByCategory(category, limitSize);
-      } catch (Exception e) {
-          System.debug(LoggingLevel.ERROR, 'getLeadList Error: ' + e.getMessage());
-          throw new AuraHandledException('リストの取得に失敗しました');   // 画面には安全な文言
-      }
-  }
-  ```
+> **UI 整理の経緯**: 一覧（leadList）・検索（leadSearch）・詳細（leadDetail）の各 LWC は
+> 標準 UI／レコードページで代替できるため廃止した。これに伴い、それらの窓口だった
+> `getLeadList` / `searchLeads`（Controller の `@AuraEnabled` メソッド）も撤去した。
+> ただし一覧取得・検索の **ビジネスロジック自体は `LeadService`** に
+> （`getAllLeads` / `getLeadsByCategory` / `searchLeads`）残してあり、将来の再利用に備えている。
 
-#### `searchLeads(String) / recalculateScore(Id)`
-- 検索は `LeadService.searchLeads` へ委譲。再計算は `LeadScoringService.calculateScores` へ委譲。
+#### `recalculateScore(Id) → void`
+- 再計算は `LeadScoringService.calculateScores` へ委譲。
 - `recalculateScore` は **状態を変える** ので `@AuraEnabled`（cacheable なし）。
 
 #### `getScoreBreakdown(Id) / getInterests(Id)`

@@ -6,49 +6,14 @@
  * メッセージを返す。読み取り専用メソッドは cacheable=true、状態変更メソッドは cacheable=false。
  *
  * 主なメソッド:
- *  - getLeadList(String, Integer)  : カテゴリ別リード一覧
- *  - searchLeads(String)           : 名前・会社名検索
  *  - getScoreBreakdown(Id)         : 3軸スコアの内訳
  *  - getInterests(Id)              : リードの興味レコード一覧
  *  - recalculateScore(Id)          : スコア再計算（状態変更）
+ *  - updateLastActionDate(List<Id>): 最終アクション日の更新（状態変更）
  *
  * SOQL を含むため with sharing を宣言する。
  */
 public with sharing class LeadController {
-
-    /**
-     * リード一覧を取得する。カテゴリが空（「All」）の場合は全カテゴリをスコア降順で返す。
-     * @param category  カテゴリ（Hot/Warm/Cold/Low）。空文字/null は全件（All）。
-     * @param limitSize 取得上限
-     * @return 該当リードのリスト
-     */
-    @AuraEnabled(cacheable=true)
-    public static List<Lead> getLeadList(String category, Integer limitSize) {
-        try {
-            if (String.isBlank(category)) {
-                return LeadService.getAllLeads(limitSize);
-            }
-            return LeadService.getLeadsByCategory(category, limitSize);
-        } catch (Exception e) {
-            System.debug(LoggingLevel.ERROR, 'getLeadList Error: ' + e.getMessage());
-            throw new AuraHandledException('リストの取得に失敗しました');
-        }
-    }
-
-    /**
-     * 名前・会社名でリードを検索する。
-     * @param searchTerm 検索文字列
-     * @return 該当リードのリスト
-     */
-    @AuraEnabled(cacheable=true)
-    public static List<Lead> searchLeads(String searchTerm) {
-        try {
-            return LeadService.searchLeads(searchTerm, null);
-        } catch (Exception e) {
-            System.debug(LoggingLevel.ERROR, 'searchLeads Error: ' + e.getMessage());
-            throw new AuraHandledException('検索に失敗しました');
-        }
-    }
 
     /**
      * 指定リードの 3 軸スコアの内訳を返す。

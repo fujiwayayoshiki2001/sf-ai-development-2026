@@ -4,7 +4,7 @@
  * LWC 窓口の @AuraEnabled メソッドを検証する。例外は AuraHandledException で
  * ラップされるため、ネガティブケースは try-catch で型を確認する。
  *
- * 検証観点: 一覧取得 / 検索 / スコア内訳 / 興味一覧 / 再計算 /
+ * 検証観点: スコア内訳 / 興味一覧 / 再計算 / 最終アクション日更新 /
  *           null 入力時の AuraHandledException / 存在しない Id。
  */
 @isTest
@@ -14,56 +14,6 @@ private class LeadControllerTest {
         List<Lead> leads = TestDataFactory.createLeads(1);
         insert leads; // afterInsert で属性スコア70・Cold が反映される
         return leads[0].Id;
-    }
-
-    /**
-     * カテゴリ別一覧取得を検証する。
-     */
-    @isTest
-    static void testGetLeadList() {
-        createScoredLead();
-
-        Test.startTest();
-        List<Lead> result = LeadController.getLeadList(LeadConstants.CATEGORY_COLD, 50);
-        Test.stopTest();
-
-        System.assertEquals(1, result.size(), 'Cold リードが1件返るはず');
-    }
-
-    /**
-     * カテゴリ空（「All」）では全カテゴリのリードが返ることを検証する。
-     */
-    @isTest
-    static void testGetLeadListAll() {
-        List<Lead> leads = TestDataFactory.createLeads(3);
-        insert leads;
-        leads[0].Score__c = 200; leads[0].Lead_Category__c = LeadConstants.CATEGORY_HOT;
-        leads[1].Score__c = 60;  leads[1].Lead_Category__c = LeadConstants.CATEGORY_COLD;
-        leads[2].Score__c = 30;  leads[2].Lead_Category__c = LeadConstants.CATEGORY_LOW;
-        LeadTriggerHandler.bypassTrigger = true;
-        update leads;
-        LeadTriggerHandler.bypassTrigger = false;
-
-        Test.startTest();
-        List<Lead> result = LeadController.getLeadList('', 50); // 空文字 = All
-        Test.stopTest();
-
-        System.assertEquals(3, result.size(), 'All では全カテゴリ3件が返るはず');
-        System.assertEquals(200, result[0].Score__c, 'スコア降順で先頭は200のはず');
-    }
-
-    /**
-     * 検索を検証する。
-     */
-    @isTest
-    static void testSearchLeads() {
-        createScoredLead();
-
-        Test.startTest();
-        List<Lead> result = LeadController.searchLeads('Test Company');
-        Test.stopTest();
-
-        System.assertEquals(1, result.size(), '会社名検索で1件返るはず');
     }
 
     /**
@@ -270,8 +220,6 @@ private class LeadControllerTest {
 
         System.runAs(minUser) {
             Test.startTest();
-            assertThrowsAura('getLeadList', new Map<String, Object>{ 'category' => LeadConstants.CATEGORY_COLD });
-            assertThrowsAura('searchLeads', null);
             assertThrowsAura('getScoreBreakdown', new Map<String, Object>{ 'leadId' => leadId });
             assertThrowsAura('getInterests', new Map<String, Object>{ 'leadId' => leadId });
             assertThrowsAura('recalculateScore', new Map<String, Object>{ 'leadId' => leadId });
@@ -285,11 +233,7 @@ private class LeadControllerTest {
     private static void assertThrowsAura(String methodName, Map<String, Object> params) {
         Boolean threw = false;
         try {
-            if (methodName == 'getLeadList') {
-                LeadController.getLeadList((String) params.get('category'), 50);
-            } else if (methodName == 'searchLeads') {
-                LeadController.searchLeads('Test');
-            } else if (methodName == 'getScoreBreakdown') {
+            if (methodName == 'getScoreBreakdown') {
                 LeadController.getScoreBreakdown((Id) params.get('leadId'));
             } else if (methodName == 'getInterests') {
                 LeadController.getInterests((Id) params.get('leadId'));
