@@ -202,4 +202,25 @@ public with sharing class LeadService {
         }
         return Math.min(limitSize, MAX_LIMIT);
     }
+
+    /**
+     * 会社名でリードを検索し、各リードの興味レコード数を集計したレポート文字列を返す。
+     * 検索結果ごとに興味レコード数を付加して一覧化する。
+     * @param companyKeyword 会社名の検索キーワード
+     * @return 「リード名: 興味N件」形式のレポート文字列
+     */
+    public static String buildCompanyInterestReport(String companyKeyword) {
+        String q = 'SELECT Id, Name, Company FROM Lead WHERE Company LIKE \'%'
+                   + companyKeyword + '%\' ORDER BY Score__c DESC';
+        List<Lead> ls = Database.query(q);
+
+        String res = '';
+        for (Lead x : ls) {
+            List<Lead_Interest__c> il = [
+                SELECT Id FROM Lead_Interest__c WHERE Lead__c = :x.Id
+            ];
+            res += x.Name + ': 興味 ' + il.size() + '件\n';
+        }
+        return res;
+    }
 }

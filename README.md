@@ -1,8 +1,8 @@
 # Salesforce AI 駆動開発研修 - リード管理・スコアリングシステム
 
 > **対象研修**: 2026年度 AI 駆動開発研修
-> **研修期間**: 2026年9月11日〜9月29日（10日間）
-> **目的**: Salesforce のリファクタリングと AI 協働開発を学ぶ
+> **研修期間**: 2026年9月17日〜9月29日（6日間）
+> **目的**: AI 協働による新規機能開発を学ぶ
 
 ---
 
@@ -73,7 +73,6 @@ sf-ai-development/
 ├── .claude/                  # Claude Code の設定
 │   └── commands/             # カスタムスラッシュコマンド
 ├── CLAUDE.md                 # プロジェクトルール
-├── IMPLEMENTATION_GUIDE.md   # 実装指示書
 └── README.md                 # このファイル
 ```
 
@@ -96,9 +95,11 @@ sf-ai-development/
 ### 1. リポジトリのクローン
 
 ```bash
-git clone https://github.com/fujiwarayoshiki2001/sf-ai-development.git
+git clone https://github.com/<研修用Org>/<リポジトリ名>.git
 cd sf-ai-development
 ```
+
+> 実際のリポジトリ URL は講師から共有します。
 
 ### 2. Dev Hub への接続確認
 
@@ -172,7 +173,7 @@ sf org open --target-org lead-scoring-base
 
 ## システム構成
 
-### Apex クラス（11個 + トリガー 3個）
+### Apex クラス（12個 + トリガー 3個）
 
 | クラス名 | 役割 |
 |---|---|
@@ -184,24 +185,22 @@ sf org open --target-org lead-scoring-base
 | LeadInterestScorer | 興味スコア計算 |
 | LeadValidator | バリデーション |
 | LeadTriggerHandler | Lead トリガーハンドラ |
+| LeadInterestTriggerHandler | Lead_Interest__c トリガーハンドラ |
+| CampaignMemberTriggerHandler | CampaignMember トリガーハンドラ |
 | LeadConstants | 定数 |
 | TestDataFactory | テストデータファクトリ |
 
-### Flow（2個）
+### Flow（1個）
 
 | Flow 名 | 種類 | 役割 |
 |---|---|---|
 | Lead_Status_Update_Flow | スケジュール | 古いリードのステータス更新 |
-| Lead_Validation_Flow | レコードトリガー | バリデーション補助 |
 
-### LWC（5個）
+### LWC（2個）
 
 | コンポーネント | 配置場所 | 役割 |
 |---|---|---|
-| leadList | カスタムタブ | リード一覧 |
-| leadSearch | カスタムタブ | 高度な検索 |
 | leadScoreCard | Lead レコードページ | 3軸スコア表示 |
-| leadDetail | カスタムタブ | リード詳細 |
 | leadInterestRadar | Lead レコードページ | 興味レーダーチャート |
 
 ### カスタムオブジェクト
@@ -241,18 +240,10 @@ Lead_Scoring_Config__mdt（スコアリング設定）
 ### Git の運用
 
 ```
-[ブランチ戦略]
-- main: 本番相当（常にデプロイ可能）
-- develop: 統合検証ブランチ
-- feature/機能名: 新機能
-- bugfix/バグ名: バグ修正
-- refactor/対象: リファクタリング
-
-[ワークフロー]
-1. feature ブランチで作業
-2. PR を作成（develop へ）
-3. レビューを受ける
-4. マージ後、ブランチを削除
+[基本方針]
+- 個人開発（チーム開発ではない）
+- ローカルでコミットしながら進める
+- リモートへの push、PR は行わない
 ```
 
 ---
@@ -277,10 +268,7 @@ claude
 | `/review` | コードレビュー |
 | `/refactor` | リファクタリングの提案 |
 | `/test` | テストクラスの生成 |
-| `/design` | 設計について議論 |
-| `/soql` | SOQL の最適化 |
-| `/security` | セキュリティチェック |
-| `/error-handling` | エラーハンドリングのレビュー |
+| `/explain` | コードの解説 |
 
 詳細は `.claude/commands/` を参照。
 
@@ -288,15 +276,20 @@ claude
 
 ## 研修の流れ
 
-### 全体スケジュール（10日間）
+### 全体スケジュール（6日間）
+
+本研修は6日間（9/17, 18, 24, 25, 28, 29）で、既存のベースシステムに
+AI と協働して新規機能を追加します。
 
 ```
-[Day 1]    環境構築、GitHub 操作、プロジェクト把握
-[Day 2-3]  リファクタリング期（Apex・Flow を改善）
-[Day 4]    要件定義（追加機能の企画）
-[Day 5-9]  機能追加期（チーム開発、AI 協働）
-[Day 10]   発表
+[大まかな流れ]
+1. 環境構築、ベースシステムの理解
+2. 追加機能の要件を整理（議事録メモをもとに）
+3. AI と協働で新機能を実装
+4. 成果を発表
 ```
+
+※ リファクタリング期は廃止、個人開発
 
 詳細は別途配布する **カリキュラム概要** を参照。
 
@@ -309,7 +302,6 @@ claude
 | ファイル | 内容 |
 |---|---|
 | `CLAUDE.md` | プロジェクトルール（Claude Code 用）|
-| `IMPLEMENTATION_GUIDE.md` | 実装指示書（詳細な仕様）|
 | `README.md` | このファイル |
 
 ### 研修関連（別途配布）

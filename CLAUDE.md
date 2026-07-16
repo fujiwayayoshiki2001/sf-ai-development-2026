@@ -32,21 +32,35 @@
 
 ---
 
-## 2. プロジェクトの状態
+## 2. プロジェクトの位置付け
 
-このプロジェクトは **研修教材** であり、現在のコードベースには **意図的に問題のあるコード** が含まれています。
+このプロジェクトは、AI駆動開発研修の **ベースシステム** です。
+Salesforce のベストプラクティスに従って実装された、リード管理・スコアリングシステムです。
 
-```
-[このプロジェクトの2つのフェーズ]
+受講者は、このベースシステムを土台として、AI (Claude Code) と協働しながら
+**新規機能を追加** します。
 
-Phase A: ベースシステム実装フェーズ
-   └ 講師が「悪いコード」を含むベースシステムを作る
-   
-Phase B: 研修フェーズ（受講者がリファクタリング）
-   └ 受講者が AI と協働で問題を発見・改善する
-```
+---
 
-詳細は `IMPLEMENTATION_GUIDE.md` を参照してください。
+## 練習用メソッドについて
+
+このベースシステムは全体が「お手本」コードですが、1 つだけ例外があります。
+
+`LeadService.buildCompanyInterestReport()` は、`/review` と `/refactor`
+コマンドの使い方を学ぶための **練習用メソッド** です。
+意図的に以下の問題を含んでいます:
+
+- SQL インジェクション (動的 SOQL + 文字列連結、エスケープ・バインド変数なし)
+- ガバナ制約違反 (for 文内での SOQL 実行)
+- 命名規則違反 (意味不明な変数名: q, ls, res, x, il)
+
+このメソッドはどこからも呼ばれておらず、システム本体には影響しません。
+Day 1 の演習で、このメソッドを題材に `/review` で問題を発見し、
+`/refactor` で改善する練習を行います。
+
+**重要**: 問題が意図的に含まれているのは、このメソッド **のみ** です。
+他のメソッド・クラスはすべてお手本品質で実装されています。
+このメソッドを見て「同じ書き方をしてよい」と誤解しないでください。
 
 ---
 
@@ -186,26 +200,30 @@ try {
 ```
 [ファイル名]
 - camelCase
-例: leadList, leadScoreCard, leadInterestRadar
+例: leadScoreCard, leadInterestRadar
 
 [コンポーネント参照]
 - HTMLでは kebab-case
-<c-lead-list></c-lead-list>
+<c-lead-score-card></c-lead-score-card>
 ```
 
 #### JavaScript
 
 ```javascript
-import { LightningElement, wire, api } from 'lwc';
-import getLeadList from '@salesforce/apex/LeadController.getLeadList';
+import { LightningElement, api, wire } from 'lwc';
+import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
+import SCORE_FIELD from '@salesforce/schema/Lead.Score__c';
+import CATEGORY_FIELD from '@salesforce/schema/Lead.Lead_Category__c';
 
-export default class LeadList extends LightningElement {
+const FIELDS = [SCORE_FIELD, CATEGORY_FIELD];
+
+export default class LeadScoreCard extends LightningElement {
     @api recordId;
-    
-    @wire(getLeadList, { category: '$category' })
-    wiredLeads({ error, data }) {
+
+    @wire(getRecord, { recordId: '$recordId', fields: FIELDS })
+    wiredLead({ error, data }) {
         if (data) {
-            this.leads = data;
+            this.lead = data;
         } else if (error) {
             this.error = error;
         }
@@ -269,7 +287,6 @@ sf-ai-development/
 ├── .claude/                  # Claude Code の設定
 │   └── commands/             # カスタムスラッシュコマンド
 ├── CLAUDE.md                 # このファイル
-├── IMPLEMENTATION_GUIDE.md   # 実装指示書
 ├── README.md                 # プロジェクト概要
 └── sfdx-project.json         # Salesforce DX 設定
 ```
@@ -279,7 +296,6 @@ sf-ai-development/
 | ファイル | 役割 |
 |---|---|
 | `CLAUDE.md` | このファイル。プロジェクトルール |
-| `IMPLEMENTATION_GUIDE.md` | 実装の詳細仕様 |
 | `README.md` | プロジェクト概要 |
 | `sfdx-project.json` | Salesforce DX プロジェクト設定 |
 
@@ -569,58 +585,37 @@ public static void updateLeads(List<Lead> leads) {
 
 ## 12. Git の運用
 
-### ブランチ戦略
+この研修は個人開発です。リモートへの push は行わず、ローカルでの
+コミットのみを行います。
+
+### 基本方針
 
 ```
-[基本ブランチ]
-- main: 本番相当（常にデプロイ可能）
-- develop: 統合検証ブランチ
-
-[作業ブランチ]
-- feature/機能名: 新機能の追加
-- bugfix/バグ名: バグ修正
-- refactor/対象: リファクタリング
-
-[ブランチ命名例]
-feature/lead-search
-bugfix/score-calculation-null
-refactor/lead-controller
+✓ 各自がローカルでコミットしながら進める
+✓ コミットは作業の区切りごとに行う
+✗ リモートへの push、PR は行わない
 ```
 
-### コミットメッセージ
+### コミットメッセージのフォーマット
 
 ```
 [フォーマット]
-type: 簡潔な説明 (50文字以内)
-
-詳細な説明（必要に応じて）
+type: 簡潔な説明
 
 [type の種類]
 - feat: 新機能
 - fix: バグ修正
-- refactor: リファクタリング
 - test: テスト追加
 - docs: ドキュメント
-- style: コードスタイル変更
-- chore: その他の雑務
+- refactor: リファクタリング
+- chore: その他
 
 [例]
-feat: リード検索機能を追加
-
-LeadController に searchLeads メソッドを追加。
-LWC から呼び出して名前と会社名で検索できる。
+feat: カテゴリ別商談化率の表示機能を追加
 ```
 
-### プルリクエスト
-
-```
-[ルール]
-✓ feature ブランチから develop へ
-✓ 必ずレビューを受ける
-✓ テストが全てパスすることを確認
-✓ コンフリクトがない状態でマージ
-✓ マージ後はブランチを削除
-```
+コミットは「AI とどう協働したか」の記録にもなります。
+作業の節目でこまめにコミットしましょう。
 
 ---
 
@@ -679,18 +674,24 @@ LWC から呼び出して名前と会社名で検索できる。
 
 | コマンド | 用途 |
 |---|---|
-| `/review` | コードレビュー（このプロジェクトの観点で）|
-| `/refactor` | リファクタリングの提案 |
+| `/review` | コードレビュー（7つの観点スキルで評価）|
+| `/refactor` | リファクタリング（改善）の提案 |
 | `/test` | テストクラスの生成 |
-| `/design` | 設計について議論 |
-| `/soql` | SOQL クエリの最適化 |
-| `/naming` | 命名のレビュー |
-| `/security` | セキュリティチェック |
-| `/error-handling` | エラーハンドリングのレビュー |
-| `/pr` | プルリクエスト用の説明文を生成 |
-| `/explain` | コードの解説（受講者向け）|
+| `/explain` | コードの解説 |
 
 詳細は `.claude/commands/` ディレクトリ参照。
+
+`/review` コマンドは、以下の7つの観点スキル（`.claude/skills/`）を使ってコードを評価します。
+
+| スキル | 観点 |
+|---|---|
+| `review-governor-limits` | ガバナ制限 |
+| `review-security` | セキュリティ |
+| `review-bulkification` | バルク化 |
+| `review-error-handling` | エラーハンドリング |
+| `review-naming` | 命名規則 |
+| `review-test-quality` | テスト品質 |
+| `review-best-practices` | ベストプラクティス |
 
 ---
 
@@ -801,12 +802,6 @@ sf project deploy start -l RunLocalTests -o my-scratch
 - [LWC Recipes](https://github.com/trailheadapps/lwc-recipes)
 - [Salesforce Architects Site](https://architect.salesforce.com/)
 
-### 研修関連
-
-- ベースシステム仕様書: `ベースシステム仕様書_v2.md`
-- 実装指示書: `IMPLEMENTATION_GUIDE.md`
-- 環境構築手順書: `AI駆動開発_環境構築手順書_v2.md`
-
 ---
 
 ## 18. このファイルの更新
@@ -820,13 +815,10 @@ sf project deploy start -l RunLocalTests -o my-scratch
 [更新の流れ]
 1. 変更内容を明確化
 2. レビューを受ける
-3. プルリクエストでマージ
+3. ローカルでコミット
 ```
-
-
-
 
 ---
 
 最終更新: 2026年9月
-バージョン: 1.0
+バージョン: 2.0（カリキュラム変更対応）
