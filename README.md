@@ -95,11 +95,9 @@ sf-ai-development/
 ### 1. リポジトリのクローン
 
 ```bash
-git clone https://github.com/<研修用Org>/<リポジトリ名>.git
-cd sf-ai-development
+git clone https://github.com/ID-APD-GT/gt-training-salesforce-ai-driven-development-2026.git
+cd gt-training-salesforce-ai-driven-development-2026
 ```
-
-> 実際のリポジトリ URL は講師から共有します。
 
 ### 2. Dev Hub への接続確認
 
