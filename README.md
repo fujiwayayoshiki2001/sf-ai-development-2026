@@ -250,7 +250,7 @@ Lead_Scoring_Config__mdt（スコアリング設定）
 
 ## Claude Code との協働
 
-このプロジェクトは **Claude Code** を活用して開発・リファクタを行います。
+このプロジェクトは **Claude Code** を活用して開発を行います。
 
 ### 起動方法
 
@@ -265,12 +265,13 @@ claude
 
 | コマンド | 用途 |
 |---|---|
-| `/review` | コードレビュー |
+| `/sf-review` | 統合コードレビュー (Apex / LWC / Flow / テストを観点別にチェック) |
 | `/refactor` | リファクタリングの提案 |
 | `/test` | テストクラスの生成 |
 | `/explain` | コードの解説 |
 
-詳細は `.claude/commands/` を参照。
+これらは `.claude/skills/` 配下の Skill として実装されています。
+Skill の中身を読むと、Claude Code の動きが理解できます。
 
 ---
 

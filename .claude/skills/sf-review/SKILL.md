@@ -1,16 +1,30 @@
 ---
+name: sf-review
 description: |
-  Apex / LWC / Flow コードを多角的にレビューする統合コマンド。
-  7 つの観点（ガバナ制限、セキュリティ、エラー処理、バルク化、命名、ベストプラクティス、テスト品質）から
-  順次レビューを実行し、統合レポートを出力する。
+  Salesforce プロジェクトの Apex / LWC / Flow / テストクラスを
+  多角的にレビューする統合スキル。
+  対象ファイルの種類を判別し、複数の観点別レビュースキル
+  (review-security, review-governor-limits, review-lwc 等) を
+  順次呼び出して、統合レポートを出力する。
+
+  以下のような場面で使用：
+  - 「このコードをレビューして」
+  - 「PR の内容を確認して」
+  - 「品質チェックをお願い」
+  - /sf-review コマンドで明示的に呼び出されたとき
+  - コード編集後に「レビューして」と依頼されたとき
 
 argument-hint: <file-path>
 ---
 
 # 統合コードレビュー
 
-このコマンドは、指定されたファイル（または現在のコード）に対して、
-複数の観点から包括的なレビューを実行します。
+このスキルは、指定されたファイル（または最近変更されたファイル）に対して、
+複数の観点から包括的なレビューを実行するオーケストレーターです。
+
+各観点のレビューは独立したスキル (review-security, review-naming 等) が
+担います。このスキルはそれらを **順番に呼び出し**、結果を統合して
+統一フォーマットで出力する役割を持ちます。
 
 ## 引数
 
@@ -18,8 +32,8 @@ argument-hint: <file-path>
 省略された場合は、最近変更されたファイルを対象にしてください。
 
 例:
-- `/review` → 最近変更されたファイルをレビュー
-- `/review force-app/main/default/classes/LeadController.cls` → 指定ファイルをレビュー
+- `/sf-review` → 最近変更されたファイルをレビュー
+- `/sf-review force-app/main/default/classes/LeadController.cls` → 指定ファイルをレビュー
 
 ## 実行手順
 
@@ -41,11 +55,13 @@ argument-hint: <file-path>
 2. 最も最近変更された Apex/Flow/LWC ファイルを対象にする
 3. ユーザーに「ファイル名: XXX をレビュー対象にしました」と通知
 
-### Step 2: モード別のスキル実行順序
+### Step 2: モード別のスキル呼び出し
+
+判別したモードに応じて、以下のスキルを **この順番で** 呼び出してください。
+各スキル (`.claude/skills/review-XXX/SKILL.md`) を読み込み、その指示に従って
+レビューを実行します。
 
 #### "standard" モード（通常の Apex クラス・トリガー）
-
-以下のスキルを **この順番で** 実行してください：
 
 ```
 [フェーズ 1: サニティチェック（致命的問題）]
@@ -67,28 +83,23 @@ argument-hint: <file-path>
 3. review-best-practices   (その他のベストプラクティス)
 ```
 
+#### "lwc" モード（LWC）
+
+```
+1. review-lwc              (LWC 品質: エラー処理・ライフサイクル・LDS 等)
+2. review-security         (セキュリティ: innerHTML・ハードコード ID 等)
+3. review-naming           (命名規則: コンポーネント名等)
+```
+
 #### "flow" モード（Flow）
 
-Flow 用のスキルはまだないので、以下の観点で総合的にレビューしてください：
+Flow 用の専用スキルはないので、以下の観点で総合的にレビューしてください：
 - バルク化（ループ内 Update Records ではないか）
 - フェイルパス（Fault Path）の有無
 - ハードコーディング
 - 命名規則
 
-#### "lwc" モード（LWC）
-
-以下のスキルを **この順番で** 実行してください：
-
-```
-1. review-lwc            (LWC 品質: エラー処理・ライフサイクル・LDS・パフォーマンス等)
-2. review-security       (セキュリティ: innerHTML・ハードコード ID 等)
-3. review-naming         (命名規則: コンポーネント名等)
-```
-
 ### Step 3: 各スキルの実行
-
-各スキルは `.claude/skills/<スキル名>/SKILL.md` に定義されています。
-スキルファイルを読み込み、その内容に従ってレビューを実行してください。
 
 各スキル実行の流れ：
 
@@ -212,16 +223,16 @@ Flow 用のスキルはまだないので、以下の観点で総合的にレビ
 
 ## 実装サンプル
 
-仮の実装イメージ（あなたが実際に Claude Code として動くときの参考）：
+仮の実装イメージ（Claude Code として動くときの参考）：
 
 ```
-1. ユーザー入力: /review LeadController.cls
+1. ユーザー入力: /sf-review LeadController.cls
 
 2. ファイル読み込み:
    - /workspace/force-app/main/default/classes/LeadController.cls を読み込む
    - ファイルタイプ: 通常の Apex クラス → "standard" モード
 
-3. スキル実行:
+3. スキル呼び出し (順次):
    - review-governor-limits を実行 → 問題A, B を検出
    - review-security を実行 → 問題C を検出
    - review-error-handling を実行 → 問題D, E を検出

@@ -1,4 +1,5 @@
 ---
+name: test
 description: |
   指定された Apex クラスに対するテストクラスを生成するコマンド。
   Salesforce のベストプラクティスに従い、@TestSetup、バルクテスト、
