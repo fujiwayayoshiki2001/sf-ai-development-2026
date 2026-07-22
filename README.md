@@ -273,6 +273,22 @@ claude
 これらは `.claude/skills/` 配下の Skill として実装されています。
 Skill の中身を読むと、Claude Code の動きが理解できます。
 
+### hooks による自動コンテキスト注入
+
+このプロジェクトには **SessionStart hook** が設定されています。
+Claude Code のセッションを開始するたびに、以下の情報が Claude に自動で
+伝わります:
+
+- Salesforce AI 駆動開発研修プロジェクトであること
+- 主要コマンド (`/sf-review` 等) の存在
+- コード作成後は `/sf-review` でのセルフレビュー推奨
+
+そのため、Claude に何も説明していないのに、
+「Salesforce の研修プロジェクトですね」と応答してくれます。
+
+hooks の仕組みは `.claude/settings.json` で確認できます。
+`/hooks` コマンドでも現在有効な hook を一覧表示できます。
+
 ---
 
 ## 研修の流れ

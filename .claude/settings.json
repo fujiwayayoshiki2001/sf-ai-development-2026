@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '📚 Salesforce AI 駆動開発研修プロジェクト\\n\\n主要コマンド:\\n  /sf-review  - コードレビュー (Apex / LWC / Flow の品質チェック)\\n  /refactor   - リファクタリング提案\\n  /test       - テストクラス生成\\n  /explain    - コードの解説\\n\\n推奨:\\n  コードを書いたら /sf-review でセルフレビューを習慣に\\n\\n※ このメッセージは Claude Code の hooks (SessionStart) で表示されています。仕組みは .claude/settings.json を確認してください。'"
+          }
+        ]
+      }
+    ]
+  }
+}
