@@ -24,13 +24,6 @@ public class LeadConstants {
     public static final Integer INTEREST_MAX_SCORE = 80;
     public static final Integer TOTAL_MAX_SCORE = 300;
 
-    // ===== 時間減衰 =====
-    public static final Decimal DECAY_FACTOR = 0.95;
-
-    // ===== ステータス更新（陳腐化判定）=====
-    public static final Integer STALE_DAYS = 30;
-    public static final String STATUS_STALE = 'Stale';
-
     // ===== スコアタイプ =====
     public static final String SCORE_TYPE_ATTRIBUTE = 'Attribute';
     public static final String SCORE_TYPE_BEHAVIOR = 'Behavior';

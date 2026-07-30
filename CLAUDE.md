@@ -17,7 +17,7 @@
 
 ```
 [3軸スコアリング]
-属性スコア（最大100点）+ 行動スコア（最大120点・時間減衰込み）
+属性スコア（最大100点）+ 行動スコア（最大120点）
                        + 興味スコア（最大80点）
                        = 最終スコア（最大300点）
 ```
@@ -248,11 +248,11 @@ export default class LeadScoreCard extends LightningElement {
 ```
 [Flow 名]
 - スネークケース + 役割
-例: Lead_Status_Update_Flow, Lead_Validation_Flow
+例: Lead_Assignment_Flow, Lead_Validation_Flow
 
 [要素名]
 - 意味のある名前を使う（"Decision_1" などのデフォルト名は避ける）
-例: Check_Stale_Leads, Update_Lead_Status_to_Stale
+例: Check_Lead_Owner, Update_Lead_Status
 ```
 
 #### 設計指針
@@ -365,11 +365,10 @@ LeadConstants (定数)
 |---|---|---|
 | `Score__c` | Number(3) | 最終スコア |
 | `Attribute_Score__c` | Number(3) | 属性スコア |
-| `Behavior_Score__c` | Number(5,2) | 行動スコア（時間減衰込み）|
+| `Behavior_Score__c` | Number(5,2) | 行動スコア |
 | `Interest_Score__c` | Number(3) | 興味スコア |
 | `Lead_Category__c` | Picklist | Hot/Warm/Cold/Low |
 | `Score_Last_Calculated__c` | DateTime | 最終計算時刻 |
-| `Last_Action_Date__c` | Date | 最終アクション日 |
 
 ### Lead_Interest__c（カスタムオブジェクト）
 
@@ -424,18 +423,6 @@ LeadScoringService.calculateScore() を呼び出し
 100-179: Warm (営業フォロー)
 50-99 : Cold (育成フェーズ)
 0-49 : Low  (低優先度)
-```
-
-### 時間減衰の計算
-
-```
-減衰係数 = 0.95 ^ 経過日数
-
-[計算例]
-- 当日: 1.00 (100%)
-- 7日前: 0.70 (70%)
-- 14日前: 0.49 (49%)
-- 30日前: 0.21 (21%)
 ```
 
 ---

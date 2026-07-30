@@ -28,7 +28,7 @@
 | 軸 | 「何を見るか」 | データソース | 計算クラス |
 |---|---|---|---|
 | 属性 | リード自身の素性（業界・規模・役職・流入元） | Lead レコード | `LeadAttributeScorer` |
-| 行動 | キャンペーンへの参加履歴（＋時間減衰） | CampaignMember（標準） | `LeadBehaviorScorer` |
+| 行動 | キャンペーンへの参加履歴 | CampaignMember（標準） | `LeadBehaviorScorer` |
 | 興味 | 検知された関心トピックと関心度 | Lead_Interest__c（カスタム） | `LeadInterestScorer` |
 
 ---
@@ -108,11 +108,11 @@
 ## 3. レイヤー別のクラス一覧
 
 ### 定数層
-**役割**: マジックナンバー（180 や 0.95 などの謎の数字）をコードに直書きせず一元管理する。
+**役割**: マジックナンバー（180 などの謎の数字）をコードに直書きせず一元管理する。
 
 | クラス | 1 行説明 |
 |---|---|
-| `LeadConstants` | 閾値(Hot=180 等)・スコア上限・減衰係数(0.95)・カテゴリ名・業界名などの `static final` 定数集。 |
+| `LeadConstants` | 閾値(Hot=180 等)・スコア上限・カテゴリ名・業界名などの `static final` 定数集。 |
 
 > Java 対比: Java の `public static final` 定数クラスとほぼ同じ。`final` の意味も同じ（再代入不可）。
 
@@ -122,7 +122,7 @@
 | クラス | 1 行説明 |
 |---|---|
 | `LeadAttributeScorer` | リード自身の項目(業界/従業員数/役職/流入元)を重み表で採点。SOQL なし・最大100点で頭打ち。 |
-| `LeadBehaviorScorer` | リードの CampaignMember を集計し、`Type_Status` の重み × 時間減衰(0.95^経過日数)で採点。最大120点。 |
+| `LeadBehaviorScorer` | リードの CampaignMember を集計し、`Type_Status` の重みで採点。最大120点。 |
 | `LeadInterestScorer` | リードの Lead_Interest__c を集計し、トピック重み × 関心度(Interest_Level)で採点。最大80点。 |
 
 > **カスタムメタデータ型(`__mdt`)とは**: 「設定値をレコードとして持てる仕組み」。
@@ -135,7 +135,7 @@
 | クラス | 1 行説明 |
 |---|---|
 | `LeadScoringService` | **司令塔**。3 Scorer を呼び合計→カテゴリ判定→Lead を一括 update。再帰防止フラグも管理。 |
-| `LeadService` | リードの取得・検索・最終アクション日更新・陳腐化(Stale)候補抽出など汎用操作。 |
+| `LeadService` | リードの取得・検索など汎用操作。 |
 | `LeadValidator` | 保存前の入力チェック（姓・会社名の必須、メール形式）。会社名重複の参照も提供。 |
 
 ### トリガー層
@@ -192,7 +192,7 @@
         │
         │  1回の SOQL で対象 Lead を取得し、3 つの Scorer を呼ぶ
         ├─► LeadAttributeScorer.calculateBulk  → 属性スコア（CMDTの重み＋Lead項目）
-        ├─► LeadBehaviorScorer.calculateBulk   → 行動スコア（CampaignMember＋時間減衰）
+        ├─► LeadBehaviorScorer.calculateBulk   → 行動スコア（CampaignMember）
         └─► LeadInterestScorer.calculateBulk   → 興味スコア（Lead_Interest__c＋関心度）
                           │
                           ▼

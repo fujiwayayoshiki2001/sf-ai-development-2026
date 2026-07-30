@@ -1,10 +1,9 @@
 /**
  * LeadService の単体テスト。
  *
- * カテゴリ別取得・検索・最終アクション日更新・陳腐化リード取得を検証する。
+ * カテゴリ別取得・検索・スコア内訳・興味レコード取得を検証する。
  *
- * 検証観点: カテゴリ別取得とスコア降順 / 件数制限 / 検索 / 空入力 /
- *           アクション日更新 / 陳腐化判定 / null・空ガード / バルク(200件)。
+ * 検証観点: カテゴリ別取得とスコア降順 / 件数制限 / 検索 / 空入力 / バルク(200件)。
  */
 @isTest
 private class LeadServiceTest {
@@ -263,127 +262,17 @@ private class LeadServiceTest {
     }
 
     /**
-     * 最終アクション日が本日に更新されることを検証する。
-     */
-    @isTest
-    static void testUpdateLastActionDate() {
-        List<Lead> leads = TestDataFactory.createLeads(3);
-        insert leads;
-        Set<Id> ids = new Map<Id, Lead>(leads).keySet();
-
-        Test.startTest();
-        LeadService.updateLastActionDate(ids);
-        Test.stopTest();
-
-        List<Lead> updated = [
-            SELECT Last_Action_Date__c FROM Lead WHERE Id IN :ids
-        ];
-        for (Lead lead : updated) {
-            System.assertEquals(Date.today(), lead.Last_Action_Date__c,
-                '最終アクション日が本日に更新されるはず');
-        }
-    }
-
-    /**
-     * updateLastActionDate の null / 空ガードを検証する。
-     */
-    @isTest
-    static void testUpdateLastActionDateGuards() {
-        Test.startTest();
-        LeadService.updateLastActionDate(null);
-        LeadService.updateLastActionDate(new Set<Id>());
-        Test.stopTest();
-        System.assert(true, 'ガードにより例外なく完了するはず');
-    }
-
-    /**
-     * 更新権限の無いユーザーでは SecurityException（標準例外）が投げられることを検証する。
-     * サービス層は UI 向けの AuraHandledException ではなく標準例外を投げる。
-     */
-    @isTest
-    static void testUpdateLastActionDateThrowsSecurityWithoutAccess() {
-        List<Lead> leads = TestDataFactory.createLeads(1);
-        insert leads;
-        Set<Id> ids = new Map<Id, Lead>(leads).keySet();
-
-        // User（setup オブジェクト）の DML は MIXED_DML 回避のため runAs 内で行う
-        User minUser = buildMinimumAccessUser();
-        System.runAs(new User(Id = UserInfo.getUserId())) {
-            insert minUser;
-        }
-
-        Boolean threw = false;
-        System.runAs(minUser) {
-            Test.startTest();
-            try {
-                LeadService.updateLastActionDate(ids);
-            } catch (SecurityException e) {
-                threw = true;
-            }
-            Test.stopTest();
-        }
-        System.assert(threw,
-            '更新権限の無いユーザーでは SecurityException が投げられるはず');
-    }
-
-    /**
-     * 最小アクセス権限のユーザーを生成する（未 insert）。
-     */
-    private static User buildMinimumAccessUser() {
-        Profile p = [SELECT Id FROM Profile WHERE Name = 'Minimum Access - Salesforce' LIMIT 1];
-        String unique = 'minsvc' + System.now().getTime();
-        return new User(
-            Alias = 'minsvc',
-            Email = unique + '@example.com.invalid',
-            LastName = 'MinAccess',
-            Username = unique + '@example.com.invalid',
-            ProfileId = p.Id,
-            TimeZoneSidKey = 'America/Los_Angeles',
-            LocaleSidKey = 'en_US',
-            EmailEncodingKey = 'UTF-8',
-            LanguageLocaleKey = 'en_US'
-        );
-    }
-
-    /**
-     * 陳腐化リード（最終アクション日が STALE_DAYS 日以上前）が取得されることを検証する。
-     */
-    @isTest
-    static void testGetStaleLeads() {
-        List<Lead> leads = TestDataFactory.createLeads(2);
-        insert leads;
-        // 1件目は40日前、2件目は本日
-        leads[0].Last_Action_Date__c = Date.today().addDays(-40);
-        leads[1].Last_Action_Date__c = Date.today();
-        setScoresBypassingTrigger(leads);
-
-        Test.startTest();
-        List<Lead> stale = LeadService.getStaleLeads();
-        Test.stopTest();
-
-        System.assertEquals(1, stale.size(), '40日前の1件のみ陳腐化候補のはず');
-        System.assertEquals(leads[0].Id, stale[0].Id, '40日前のリードが返るはず');
-    }
-
-    /**
-     * バルク（200件）でカテゴリ別取得・アクション日更新が動作することを検証する。
+     * バルク（200件）でカテゴリ別取得が動作することを検証する。
      */
     @isTest
     static void testBulk() {
         List<Lead> leads = TestDataFactory.createLeads(200);
         insert leads; // 全件 Cold(70)
-        Set<Id> ids = new Map<Id, Lead>(leads).keySet();
 
         Test.startTest();
         List<Lead> result = LeadService.getLeadsByCategory(LeadConstants.CATEGORY_COLD, 200);
-        LeadService.updateLastActionDate(ids);
         Test.stopTest();
 
         System.assertEquals(200, result.size(), '200件すべて取得できるはず');
-        System.assertEquals(
-            200,
-            [SELECT COUNT() FROM Lead WHERE Last_Action_Date__c = TODAY],
-            '200件すべて本日に更新されるはず'
-        );
     }
 }

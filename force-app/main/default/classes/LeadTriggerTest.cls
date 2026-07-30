@@ -82,7 +82,7 @@ private class LeadTriggerTest {
         insert leads; // Score 70
 
         Test.startTest();
-        update new Lead(Id = leads[0].Id, Last_Action_Date__c = Date.today());
+        update new Lead(Id = leads[0].Id, Description = 'メモ更新');
         Test.stopTest();
 
         Lead result = [SELECT Score__c FROM Lead WHERE Id = :leads[0].Id];

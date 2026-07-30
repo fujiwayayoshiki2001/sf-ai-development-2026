@@ -19,8 +19,8 @@
 
 ### 全体の流れ
 処理は持ちません。`public static final` なフィールドが並ぶだけの「定数の倉庫」です。
-閾値（Hot=180 等）・スコア上限（100/120/80/300）・時間減衰係数（0.95）・
-カテゴリ名（Hot/Warm/Cold/Low）・業界名・リードソース名・陳腐化日数（30）などを保持します。
+閾値（Hot=180 等）・スコア上限（100/120/80/300）・
+カテゴリ名（Hot/Warm/Cold/Low）・業界名・リードソース名などを保持します。
 
 ```apex
 public class LeadConstants {
@@ -32,8 +32,6 @@ public class LeadConstants {
     public static final Integer ATTRIBUTE_MAX_SCORE = 100;
     public static final Integer BEHAVIOR_MAX_SCORE  = 120;
     public static final Integer INTEREST_MAX_SCORE  = 80;
-    // 時間減衰
-    public static final Decimal DECAY_FACTOR = 0.95;
     ...
 }
 ```
@@ -130,15 +128,15 @@ Lead の項目だけです。
 
 ---
 
-## 3. LeadBehaviorScorer — 行動スコア（時間減衰込み）
+## 3. LeadBehaviorScorer — 行動スコア
 
 ### 役割
-リードのキャンペーン参加履歴（CampaignMember）を集計し、**新しい行動ほど高く**評価する。
+リードのキャンペーン参加履歴（CampaignMember）を集計して評価する。
 
 ### 全体の流れ
 ```
 対象LeadのCampaignMemberを1回のSOQLで取得
-  → 各メンバーを「Type_Status」キーで重み引き × 時間減衰係数 を加算
+  → 各メンバーを「Type_Status」キーで重み引きして加算
   → 120点で頭打ち
 ```
 
@@ -149,27 +147,18 @@ Lead の項目だけです。
 - **コードのキモ**:
   ```apex
   List<CampaignMember> members = [
-      SELECT Id, LeadId, Campaign.Type, Status, CreatedDate
+      SELECT Id, LeadId, Campaign.Type, Status
       FROM CampaignMember WHERE LeadId IN :leadIds WITH SECURITY_ENFORCED
   ];                                    // ← ループの外で1回だけクエリ（バルク化）
   for (CampaignMember m : members) {
       String key = (m.Campaign.Type + '_' + m.Status).toLowerCase();   // 例: webinar_attended
       Decimal weight = weightMap.containsKey(key) ? weightMap.get(key) : 0;
       if (weight == 0) continue;
-      Decimal decay = calculateDecay(m.CreatedDate.date());
-      scoreMap.put(m.LeadId, scoreMap.get(m.LeadId) + (weight * decay));
+      scoreMap.put(m.LeadId, scoreMap.get(m.LeadId) + weight);
   }
   ```
 - **なぜこの実装か**: 「キャンペーン種別×ステータス」の組み合わせごとに重みが違うため、
   両者を連結したキーで重み表を引く設計。
-
-#### `calculateDecay(Date activityDate) → Decimal`（private）
-- **時間減衰**: `係数^経過日数`。`0.95^7 ≒ 0.70`（7日前は70%）のように、古い行動を割り引く。
-  ```apex
-  Integer daysAgo = activityDate.daysBetween(Date.today());
-  if (daysAgo < 0) daysAgo = 0;                       // 未来日付は減衰なし(=1)
-  return Math.pow(LeadConstants.DECAY_FACTOR.doubleValue(), daysAgo);
-  ```
 
 #### `getWeightMap()`（private）
 - 属性版と同型。`Score_Type__c='Behavior'` の行をキャッシュ。
@@ -181,12 +170,10 @@ Lead の項目だけです。
 
 ### このクラスから学べること
 - **集計の定石**: 「先に 0 で初期化 → ループで加算」。データが無い Lead も結果 Map に 0 で残せる。
-- **ビジネスルールの数式化**（時間減衰）を 1 メソッドに隔離して読みやすく。
 
 ### よくある間違い（リファクタ題材の候補）
 - **ステータスのローカライズ不一致**: 組織既定の CampaignMemberStatus が日本語（「送信」等）だと、
   キー `webinar_attended` と一致せず重み 0 になります。設定依存の落とし穴で、良い議論テーマ。
-- **減衰計算をメンバー毎に毎回 `Math.pow`**: 同じ日付が多い場合はキャッシュ余地あり（最適化題材）。
 - **単一版 `calculate(Id)` のループ呼び出し → N+1 SOQL**: 属性版と同じ注意点。
 
 ---
@@ -516,7 +503,7 @@ validate(リスト) → 各Leadに対して 必須項目チェック + メール
 
 ### 全体の流れ
 取得系（カテゴリ別/全件/検索）は **SOQL に `WITH SECURITY_ENFORCED` と `LIMIT`** を付けて
-安全に返す。更新系（最終アクション日）は CRUD 権限を確認してから DML。
+安全に返す。
 
 ### 主要なメソッドの解説
 
@@ -533,12 +520,6 @@ validate(リスト) → 各Leadに対して 必須項目チェック + メール
 - **バインド変数 `:pattern`** を使っているので、本来 SOQL インジェクションは起きません
   （エスケープは二重の安全策）。
 
-#### `updateLastActionDate(Set<Id>) → void`
-- 最終アクション日を本日に更新。`Schema.sObjectType.Lead.isUpdateable()` で **CRUD チェック**。
-
-#### `getStaleLeads() → List<Lead>`
-- 最終アクションから 30 日以上（`STALE_DAYS`）経過し、まだ Stale 化していないリードを抽出。
-
 > **Salesforce 特有のポイント**:
 > - `WITH SECURITY_ENFORCED` = クエリに **項目/オブジェクトのアクセス権チェックを強制**。
 > - **バインド変数（`:変数`）** は値を安全に埋め込む仕組み（Java の PreparedStatement の `?` 相当）。
@@ -551,10 +532,6 @@ validate(リスト) → 各Leadに対して 必須項目チェック + メール
 ### このクラスから学べること
 - **SOQL の作法**: `WITH SECURITY_ENFORCED` + `LIMIT` + `ORDER BY` をセットで。
 - **入力の正規化**（`normalizeLimit`）で上限暴走を防ぐ。
-- **層の責務を守る例外設計（お手本）**: `updateLastActionDate` は権限不足時に
-  *標準例外* `SecurityException` を投げ、DML 失敗は `DmlException` をそのまま伝播する。
-  UI 向けの `AuraHandledException` への変換は **Controller の責務**として分離されている
-  （修正3で是正済み）。サービス層は UI を知らない純粋なロジック層に保たれている。
 
 ### よくある間違い（リファクタ題材の候補）
 - **エスケープとバインドの二重掛け**: `searchLeads` はバインド変数を使っているため
@@ -595,12 +572,6 @@ validate(リスト) → 各Leadに対して 必須項目チェック + メール
   サービスが投げる標準例外（`IllegalArgumentException` / `QueryException`）を
   `catch (Exception e)` でまとめて `AuraHandledException` にラップする。
 
-#### `updateLastActionDate(List<Id>) → void`
-- 最終アクション日更新の窓口（状態変更のため cacheable なし）。LWC から呼びやすいよう
-  引数は `List<Id>`、内部で `Set<Id>` に変換して `LeadService` へ委譲。
-- サービスの `SecurityException`（権限不足）と `DmlException`（更新失敗）を **個別に catch** し、
-  それぞれユーザー向けの `AuraHandledException` に変換する（修正3で新設）。
-
 > **Salesforce 特有のポイント**:
 > - `@AuraEnabled` = この Apex メソッドを **JS(LWC) から呼べるよう公開**する印。
 > - `cacheable=true` = 読み取り専用としてクライアントキャッシュ可（高速・`@wire` で使える）。
@@ -618,8 +589,6 @@ validate(リスト) → 各Leadに対して 必須項目チェック + メール
 ### 設計ポイント（このお手本で守っていること）
 - 生の例外メッセージ（実装詳細やスタックトレース）を画面に出さず、`AuraHandledException` の
   安全な日本語文言に置き換える。
-- `updateLastActionDate` のように、捕捉すべき例外が複数ある場合は
-  `catch (SecurityException) / catch (DmlException)` と **型ごとに分けて**意味のある文言を返す。
 
 ---
 

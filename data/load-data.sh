@@ -32,4 +32,10 @@ sf apex run -f "${DIR}/seed.apex" -o "${ORG}"
 echo "==> 投入結果を検証 (data/verify.apex)"
 sf apex run -f "${DIR}/verify.apex" -o "${ORG}"
 
+echo "==> 商談化データを投入 (data/seed-converted.apex)"
+sf apex run -f "${DIR}/seed-converted.apex" -o "${ORG}"
+
+echo "==> 商談化データを検証 (data/verify-converted.apex)"
+sf apex run -f "${DIR}/verify-converted.apex" -o "${ORG}"
+
 echo "==> 完了"

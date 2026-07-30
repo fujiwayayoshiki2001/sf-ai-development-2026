@@ -93,11 +93,6 @@
         <readable>true</readable>
         <editable>true</editable>
     </fieldPermissions>
-    <fieldPermissions>
-        <field>Lead.Last_Action_Date__c</field>
-        <readable>true</readable>
-        <editable>true</editable>
-    </fieldPermissions>
 
     <!-- ===== Lead_Interest__c カスタム項目の FLS ===== -->
     <!-- Interest_Topic__c / Interest_Level__c は「必須」項目のため FLS 指定不可。

@@ -4,7 +4,7 @@
  * LWC 窓口の @AuraEnabled メソッドを検証する。例外は AuraHandledException で
  * ラップされるため、ネガティブケースは try-catch で型を確認する。
  *
- * 検証観点: スコア内訳 / 興味一覧 / 再計算 / 最終アクション日更新 /
+ * 検証観点: スコア内訳 / 興味一覧 / 再計算 /
  *           null 入力時の AuraHandledException / 存在しない Id。
  */
 @isTest
@@ -122,70 +122,6 @@ private class LeadControllerTest {
         System.assertEquals(70, result.Score__c, '再計算で属性70が復元されるはず');
         System.assertEquals(LeadConstants.CATEGORY_COLD, result.Lead_Category__c,
             '70点は Cold のはず');
-    }
-
-    /**
-     * 最終アクション日更新の窓口が成功時に本日を反映することを検証する。
-     */
-    @isTest
-    static void testUpdateLastActionDateSuccess() {
-        Id leadId = createScoredLead();
-
-        Test.startTest();
-        LeadController.updateLastActionDate(new List<Id>{ leadId });
-        Test.stopTest();
-
-        Lead result = [SELECT Last_Action_Date__c FROM Lead WHERE Id = :leadId];
-        System.assertEquals(Date.today(), result.Last_Action_Date__c,
-            '最終アクション日が本日に更新されるはず');
-    }
-
-    /**
-     * 最終アクション日更新: 権限不足ユーザーでは、サービス層の SecurityException が
-     * Controller で AuraHandledException にラップされることを検証する。
-     */
-    @isTest
-    static void testUpdateLastActionDateThrowsAuraWithoutAccess() {
-        Id leadId = createScoredLead();
-        User minUser = buildMinimumAccessUser();
-        System.runAs(new User(Id = UserInfo.getUserId())) {
-            insert minUser;
-        }
-
-        Boolean threw = false;
-        System.runAs(minUser) {
-            Test.startTest();
-            try {
-                LeadController.updateLastActionDate(new List<Id>{ leadId });
-            } catch (AuraHandledException e) {
-                threw = true;
-            }
-            Test.stopTest();
-        }
-        System.assert(threw,
-            '権限不足では SecurityException が AuraHandledException にラップされるはず');
-    }
-
-    /**
-     * 最終アクション日更新: DML 失敗（削除済みリードへの更新）でも
-     * Controller が DmlException を AuraHandledException にラップすることを検証する。
-     */
-    @isTest
-    static void testUpdateLastActionDateThrowsAuraOnDmlError() {
-        Id leadId = createScoredLead();
-        delete [SELECT Id FROM Lead WHERE Id = :leadId]; // 削除済み Id を更新させて DmlException を誘発
-
-        Boolean threw = false;
-        Test.startTest();
-        try {
-            LeadController.updateLastActionDate(new List<Id>{ leadId });
-        } catch (AuraHandledException e) {
-            threw = true;
-        }
-        Test.stopTest();
-
-        System.assert(threw,
-            'DML 失敗時も AuraHandledException にラップされるはず');
     }
 
     /**

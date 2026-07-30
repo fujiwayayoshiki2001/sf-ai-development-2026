@@ -2,8 +2,8 @@
  * 行動スコアを計算するクラス。
  *
  * Lead に紐づく CampaignMember を集計し、Campaign.Type と Status の組み合わせに対応する
- * 重み（Lead_Scoring_Config__mdt の Score_Type = 'Behavior'）に時間減衰係数を掛けて合算する。
- * 時間減衰は LeadConstants.DECAY_FACTOR ^ 経過日数。最大値は BEHAVIOR_MAX_SCORE で頭打ち。
+ * 重み（Lead_Scoring_Config__mdt の Score_Type = 'Behavior'）を合算する。
+ * 最大値は BEHAVIOR_MAX_SCORE で頭打ち。
  *
  * 主なメソッド:
  *  - calculateBulk(Set<Id>) : 複数 Lead の行動スコアをまとめて計算（基本メソッド）
@@ -34,7 +34,7 @@ public with sharing class LeadBehaviorScorer {
 
         // 一度のクエリで対象 Lead の CampaignMember をすべて取得
         List<CampaignMember> members = [
-            SELECT Id, LeadId, Campaign.Type, Status, CreatedDate
+            SELECT Id, LeadId, Campaign.Type, Status
             FROM CampaignMember
             WHERE LeadId IN :leadIds
             WITH SECURITY_ENFORCED
@@ -55,9 +55,8 @@ public with sharing class LeadBehaviorScorer {
             if (weight == 0) {
                 continue;
             }
-            Decimal decay = calculateDecay(member.CreatedDate.date());
             Decimal current = scoreMap.get(member.LeadId);
-            scoreMap.put(member.LeadId, current + (weight * decay));
+            scoreMap.put(member.LeadId, current + weight);
         }
 
         // 上限で頭打ち
@@ -82,21 +81,6 @@ public with sharing class LeadBehaviorScorer {
             return scoreMap.get(leadId);
         }
         return 0;
-    }
-
-    /**
-     * 活動日から今日までの経過日数に基づく時間減衰係数を計算する。
-     * 係数 = DECAY_FACTOR ^ 経過日数（未来日付の場合は経過日数 0 = 減衰なし）。
-     */
-    private static Decimal calculateDecay(Date activityDate) {
-        if (activityDate == null) {
-            return 1;
-        }
-        Integer daysAgo = activityDate.daysBetween(Date.today());
-        if (daysAgo < 0) {
-            daysAgo = 0;
-        }
-        return Math.pow(LeadConstants.DECAY_FACTOR.doubleValue(), daysAgo);
     }
 
     /**

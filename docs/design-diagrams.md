@@ -72,7 +72,6 @@ erDiagram
         Number Interest_Score__c "興味(3,0)"
         Picklist Lead_Category__c "Hot/Warm/Cold/Low"
         DateTime Score_Last_Calculated__c "最終計算時刻"
-        Date Last_Action_Date__c "最終アクション日"
     }
 
     Lead_Interest__c {
@@ -204,14 +203,11 @@ classDiagram
         +getScoreBreakdown(Id) Map
         +getInterests(Id) List
         +recalculateScore(Id) void
-        +updateLastActionDate(List~Id~) void
     }
     class LeadService {
         <<Service>>
         +getScoreBreakdown(Id) Map
         +getInterests(Id) List
-        +updateLastActionDate(Set~Id~) void
-        +getStaleLeads() List
     }
     class LeadValidator {
         <<Service>>
@@ -238,7 +234,6 @@ classDiagram
     class LeadConstants {
         <<Constants>>
         +HOT_THRESHOLD Integer
-        +DECAY_FACTOR Decimal
     }
     class LeadTriggerHandler {
         <<Handler>>
@@ -315,7 +310,7 @@ sequenceDiagram
     SS->>AS: calculateBulk(leads)
     AS-->>SS: 属性スコア Map
     SS->>BS: calculateBulk(leadIds)
-    BS-->>SS: 行動スコア Map(時間減衰込み)
+    BS-->>SS: 行動スコア Map
     SS->>IS: calculateBulk(leadIds)
     IS-->>SS: 興味スコア Map
     SS->>SS: 合計 → determineCategory()
@@ -412,17 +407,6 @@ sequenceDiagram
 ---
 
 ## 6. スコア計算ロジック（補足図）
-
-### 行動スコアの時間減衰
-
-```
-減衰係数 = 0.95 ^ 経過日数
-
-  当日:   1.00 (100%)
-  7日前:  0.70 ( 70%)
-  14日前: 0.49 ( 49%)
-  30日前: 0.21 ( 21%)
-```
 
 ### カテゴリ判定フロー
 

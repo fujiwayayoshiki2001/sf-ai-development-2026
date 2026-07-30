@@ -1,15 +1,13 @@
 /**
- * Phase 8 シードデータ投入スクリプト（冪等・Anonymous Apex / 時間減衰なし）
+ * Phase 8 シードデータ投入スクリプト（冪等・Anonymous Apex）
  *
  * 投入内容:
  *   - シードリード 50件（業界/規模/役職/ソースを多様化し、カテゴリを Hot/Warm/Cold/Low に分散）
  *   - キャンペーン 6個（Webinar / Trade Show / Email / White Paper / Demo Request）+ 英語ステータス
- *   - CampaignMember 約80件（すべて投入日付。時間減衰は使わない）
+ *   - CampaignMember 約80件（すべて投入日付）
  *   - Lead_Interest__c 約80件（10トピックを均等分散、レベル 30-100）
  *
  * スコアはトリガー（afterInsert / CampaignMemberTrigger / LeadInterestTrigger）が自動計算する。
- * 時間減衰はシードでは再現しない（CreatedDate は投入日 = 減衰係数 1.0）。
- * 減衰ロジックは LeadBehaviorScorerTest（Test.setCreatedDate）で動作実証済み。
  *
  * 冪等性: 先頭で既存のシードデータ（タグ付き）を削除してから再生成する。
  * 追加の手動設定・権限は不要。

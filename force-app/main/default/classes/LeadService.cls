@@ -7,8 +7,6 @@
  * 主なメソッド:
  *  - getLeadsByCategory(String, Integer) : カテゴリ別リードをスコア降順で取得
  *  - searchLeads(String, Integer)        : 名前・会社名で検索
- *  - updateLastActionDate(Set<Id>)       : 最終アクション日を更新
- *  - getStaleLeads()                     : 一定日数アクションのないリードを取得
  *
  * SOQL/DML を含むため with sharing を宣言する。
  */
@@ -141,53 +139,6 @@ public with sharing class LeadService {
             WITH SECURITY_ENFORCED
             ORDER BY Interest_Level__c DESC
             LIMIT :INTEREST_LIMIT
-        ];
-    }
-
-    /**
-     * 指定リードの最終アクション日を本日に更新する。
-     * 更新権限（CRUD）を確認してから DML を実行する。
-     *
-     * サービス層は UI を意識しないため、UI 向けの AuraHandledException ではなく
-     * 標準例外を投げる:
-     *   - 更新権限が無い場合 : SecurityException
-     *   - DML 失敗           : DmlException（そのまま伝播）
-     * UI 向けのラップは呼び出し側（LeadController）の責務とする。
-     * @param leadIds 対象 Lead Id の集合
-     * @throws SecurityException 実行ユーザーに Lead の更新権限が無い場合
-     * @throws DmlException      更新 DML が失敗した場合
-     */
-    public static void updateLastActionDate(Set<Id> leadIds) {
-        if (leadIds == null || leadIds.isEmpty()) {
-            return;
-        }
-        if (!Schema.sObjectType.Lead.isUpdateable()) {
-            throw new SecurityException('Lead is not updateable for the current user');
-        }
-
-        List<Lead> leadsToUpdate = new List<Lead>();
-        for (Id leadId : leadIds) {
-            leadsToUpdate.add(new Lead(
-                Id = leadId,
-                Last_Action_Date__c = Date.today()
-            ));
-        }
-        update leadsToUpdate;
-    }
-
-    /**
-     * 最終アクション日が STALE_DAYS 日以上前で、まだ Stale 化されていないリードを取得する。
-     * @return 陳腐化候補のリードのリスト
-     */
-    public static List<Lead> getStaleLeads() {
-        Date thresholdDate = Date.today().addDays(-LeadConstants.STALE_DAYS);
-
-        return [
-            SELECT Id, Name, Last_Action_Date__c, Status
-            FROM Lead
-            WHERE Last_Action_Date__c < :thresholdDate
-              AND Status != :LeadConstants.STATUS_STALE
-            WITH SECURITY_ENFORCED
         ];
     }
 

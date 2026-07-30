@@ -1,8 +1,8 @@
 /**
  * LeadBehaviorScorer の単体テスト。
  *
- * 行動スコア（CampaignMember を Campaign.Type + '_' + Status のキーで重み付けし、
- * 時間減衰 0.95^経過日数 を掛けて合算、上限 120）を検証する。
+ * 行動スコア（CampaignMember を Campaign.Type + '_' + Status のキーで重み付けし合算、
+ * 上限 120）を検証する。
  *
  * 重みは Lead_Scoring_Config__mdt（Score_Type='Behavior'）に依存する:
  *   Webinar_Registered=10 / Webinar_Attended=30 など。
@@ -11,7 +11,7 @@
  * ため、テストでは Campaign に英語ラベルの CampaignMemberStatus を明示的に追加し、
  * 設定キーと一致させる。
  *
- * 検証観点: ポジティブ / 時間減衰 / 上限 / キー不一致 / メンバー無し / null・空 / バルク(200件)。
+ * 検証観点: ポジティブ / 上限 / キー不一致 / メンバー無し / null・空 / バルク(200件)。
  */
 @isTest
 private class LeadBehaviorScorerTest {
@@ -56,7 +56,7 @@ private class LeadBehaviorScorerTest {
     }
 
     /**
-     * 当日参加（減衰なし）の Webinar_Registered メンバー1件 → スコア 10。
+     * Webinar_Registered メンバー1件 → スコア 10。
      */
     @isTest
     static void testCalculateSingle() {
@@ -69,30 +69,7 @@ private class LeadBehaviorScorerTest {
         Test.stopTest();
 
         System.assertEquals(10, score,
-            '当日参加の Webinar_Registered は減衰なしで 10 のはず');
-    }
-
-    /**
-     * 10日前の参加に時間減衰（0.95^10）が掛かることを検証する。
-     */
-    @isTest
-    static void testTimeDecay() {
-        Id leadId = createLeadId();
-        Campaign campaign = createWebinarCampaign('WB Decay', STATUS_REGISTERED);
-        CampaignMember member = addMember(campaign.Id, leadId, STATUS_REGISTERED);
-        // CreatedDate を10日前に設定して減衰を再現する
-        Test.setCreatedDate(member.Id, System.now().addDays(-10));
-
-        Test.startTest();
-        Decimal score = LeadBehaviorScorer.calculate(leadId);
-        Test.stopTest();
-
-        Decimal expected = 10 * Math.pow(LeadConstants.DECAY_FACTOR.doubleValue(), 10);
-        System.assert(
-            Math.abs(score - expected) < 0.01,
-            '10日減衰後のスコアは ' + expected + ' 付近のはず。実際: ' + score
-        );
-        System.assert(score < 10, '減衰により当日値(10)より小さいはず: ' + score);
+            'Webinar_Registered は 10 のはず');
     }
 
     /**

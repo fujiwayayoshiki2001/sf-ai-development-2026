@@ -167,6 +167,11 @@ bash data/load-data.sh lead-scoring-base
 sf org open --target-org lead-scoring-base
 ```
 
+デフォルトのOrgが指定できている場合
+```bash
+sf org open 
+```
+
 ---
 
 ## システム構成
@@ -179,7 +184,7 @@ sf org open --target-org lead-scoring-base
 | LeadService | ビジネスロジック中核 |
 | LeadScoringService | 3軸を合算する統括 |
 | LeadAttributeScorer | 属性スコア計算 |
-| LeadBehaviorScorer | 行動スコア計算（時間減衰込み）|
+| LeadBehaviorScorer | 行動スコア計算 |
 | LeadInterestScorer | 興味スコア計算 |
 | LeadValidator | バリデーション |
 | LeadTriggerHandler | Lead トリガーハンドラ |

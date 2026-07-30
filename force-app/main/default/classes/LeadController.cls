@@ -9,7 +9,6 @@
  *  - getScoreBreakdown(Id)         : 3軸スコアの内訳
  *  - getInterests(Id)              : リードの興味レコード一覧
  *  - recalculateScore(Id)          : スコア再計算（状態変更）
- *  - updateLastActionDate(List<Id>): 最終アクション日の更新（状態変更）
  *
  * SOQL を含むため with sharing を宣言する。
  */
@@ -61,29 +60,6 @@ public with sharing class LeadController {
         } catch (Exception e) {
             System.debug(LoggingLevel.ERROR, 'recalculateScore Error: ' + e.getMessage());
             throw new AuraHandledException('スコアの再計算に失敗しました');
-        }
-    }
-
-    /**
-     * 指定リード群の最終アクション日を本日に更新する（状態変更を伴うため cacheable=false）。
-     * LWC からの呼び出しやすさを優先し、引数は List<Id> で受けて内部で Set へ変換する。
-     * サービス層が投げる標準例外を、ユーザー向けの AuraHandledException にラップする。
-     * @param leadIds 対象 Lead Id のリスト
-     */
-    @AuraEnabled
-    public static void updateLastActionDate(List<Id> leadIds) {
-        try {
-            Set<Id> idSet = null;
-            if (leadIds != null) {
-                idSet = new Set<Id>(leadIds);
-            }
-            LeadService.updateLastActionDate(idSet);
-        } catch (SecurityException e) {
-            System.debug(LoggingLevel.ERROR, 'updateLastActionDate Security Error: ' + e.getMessage());
-            throw new AuraHandledException('リードの更新権限がありません');
-        } catch (DmlException e) {
-            System.debug(LoggingLevel.ERROR, 'updateLastActionDate DML Error: ' + e.getMessage());
-            throw new AuraHandledException('最終アクション日の更新に失敗しました');
         }
     }
 }

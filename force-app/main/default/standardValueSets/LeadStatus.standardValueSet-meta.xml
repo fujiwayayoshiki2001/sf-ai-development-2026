@@ -2,33 +2,27 @@
 <StandardValueSet xmlns="http://soap.sforce.com/2006/04/metadata">
     <sorted>false</sorted>
     <standardValue>
-        <fullName>Contacted</fullName>
-        <default>false</default>
-        <label>評価中</label>
-        <converted>false</converted>
-    </standardValue>
-    <standardValue>
-        <fullName>Open</fullName>
+        <fullName>Open - Not Contacted</fullName>
         <default>true</default>
-        <label>新規</label>
+        <label>Open - Not Contacted</label>
         <converted>false</converted>
     </standardValue>
     <standardValue>
-        <fullName>Qualified</fullName>
+        <fullName>Working - Contacted</fullName>
         <default>false</default>
-        <label>評価済み</label>
+        <label>Working - Contacted</label>
+        <converted>false</converted>
+    </standardValue>
+    <standardValue>
+        <fullName>Closed - Converted</fullName>
+        <default>false</default>
+        <label>Closed - Converted</label>
         <converted>true</converted>
     </standardValue>
     <standardValue>
-        <fullName>Unqualified</fullName>
+        <fullName>Closed - Not Converted</fullName>
         <default>false</default>
-        <label>不要</label>
-        <converted>false</converted>
-    </standardValue>
-    <standardValue>
-        <fullName>Stale</fullName>
-        <default>false</default>
-        <label>陳腐化</label>
+        <label>Closed - Not Converted</label>
         <converted>false</converted>
     </standardValue>
 </StandardValueSet>

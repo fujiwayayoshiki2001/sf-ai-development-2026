@@ -39,7 +39,7 @@ JSON tree import ではなく Anonymous Apex を採用した理由:
 - **キャンペーン 6件**: Webinar×2 / Trade Show / Email / White Paper / Demo Request。
   各キャンペーンに英語 CampaignMemberStatus（Registered/Attended/Visited/Sent/Responded/
   Downloaded/Submitted）を追加。
-- **CampaignMember 約80件**: すべて投入日付（時間減衰なし＝減衰係数 1.0）。
+- **CampaignMember 約80件**: すべて投入日付。
 - **Lead_Interest__c 約80件**: 10トピックを均等分散、レベル 30〜100。
 
 ### カテゴリ設計（属性 + 行動 + 興味 = 合計）
@@ -50,12 +50,6 @@ JSON tree import ではなく Anonymous Apex を採用した理由:
 | Warm | 18 | 60 | 30 (展示会25 + メール5) | 〜80 | 〜170 |
 | Cold | 14 | 50 | 25 または 0 | 0 または 30〜45 | 75〜95 |
 | Low  |  6 | 25 | 10 または 0 | 0 | 25〜35 |
-
-## 時間減衰について
-
-シードデータでは時間減衰を使わない（全 CampaignMember は投入日付）。減衰ロジック自体は
-`LeadBehaviorScorerTest`（`Test.setCreatedDate`）で動作実証済み。受講者の演習として
-「過去日付の CampaignMember を作って違いを見る」ことが可能。
 
 ## タグ（冪等性のマーカー）
 
